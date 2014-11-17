@@ -4,5 +4,6 @@
     <string name="app_name">Drop</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="facebook_app_id">299195526954971</string>
 
 </resources>
