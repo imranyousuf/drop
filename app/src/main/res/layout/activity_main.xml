@@ -8,6 +8,8 @@
         android:id="@+id/map"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
+        android:layout_above="@+id/bottom_bar"
+        android:layout_below="@+id/top_bar"
         android:name="com.google.android.gms.maps.MapFragment"/>
 
     <ImageButton
@@ -22,6 +24,7 @@
         android:layout_above="@+id/bottom_bar"/>
 
     <RelativeLayout
+        android:id="@+id/top_bar"
         android:orientation="horizontal"
         android:layout_width="fill_parent"
         android:layout_height="50dp"
