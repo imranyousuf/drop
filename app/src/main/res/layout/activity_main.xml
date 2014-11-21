@@ -34,33 +34,37 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true">
 
-        <Button
+        <ImageButton
             android:id="@+id/friends_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:text="Friends"
-            android:textSize="10dp"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"/>
-
-        <TextView android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:background="@null"
+            android:src="@drawable/friends_icon"
             android:layout_margin="10dp"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
-            android:text="DROP" />
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"/>
 
-        <Button
+        <ImageView
+            android:id="@+id/logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/drop_logo" />
+
+        <ImageButton
             android:id="@+id/drops_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@null"
+            android:src="@drawable/collected_drops_icon"
             android:layout_margin="10dp"
-            android:text="Drops"
-            android:textSize="10dp"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"/>
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"/>
         </RelativeLayout>
 
     <RelativeLayout
@@ -75,20 +79,24 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true">
 
-        <Button
+        <ImageButton
             android:id="@+id/settings_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@null"
+            android:src="@drawable/settings_icon"
             android:layout_margin="10dp"
             android:text="Settings"
             android:textSize="10dp"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"/>
 
-        <Button
+        <ImageButton
             android:id="@+id/time_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@null"
+            android:src="@drawable/calandar"
             android:layout_margin="10dp"
             android:text="Time"
             android:textSize="10dp"
