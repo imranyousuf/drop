@@ -2,5 +2,7 @@
 <resources>
 
     <color name="purple_accent">#673ab7</color>
+    <color name="pink_accent">#fafafa</color>
+    <color name="green_accent">#00bfa5</color>
 
 </resources>

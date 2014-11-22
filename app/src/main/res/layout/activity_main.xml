@@ -21,7 +21,8 @@
         android:id="@+id/publish_button"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:layout_above="@+id/bottom_bar"/>
+        android:layout_above="@+id/bottom_bar"
+        android:onClick="postDropPressed"/>
 
     <RelativeLayout
         android:id="@+id/top_bar"
