@@ -145,6 +145,9 @@ public class MainActivity extends Activity {
     public void postDropPressed(View view) {
         // TODO: CHECK TO SEE IF USER SIGNED IN BEFORE ALLOWING POST. IF NOT SIGNED IN, LAUNCH SIGN IN.
 
+      //  Intent intent=new Intent(this, FBLogin.class);
+      //  startActivity(intent);
+
         Intent intent = new Intent(this, PostDropActivity.class);
         startActivity(intent);
     }
