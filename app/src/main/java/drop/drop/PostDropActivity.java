@@ -28,7 +28,6 @@ import com.firebase.client.FirebaseError;
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 public class PostDropActivity extends Activity {
 
@@ -96,10 +95,6 @@ public class PostDropActivity extends Activity {
     public void checkPressed(View view) {
         Log.e("DEBUG", "Uploading drop...");
 
-        if(imageBitmap == null) {
-            Toast.makeText(getApplicationContext(), "Please choose a photo by tapping the camera button.", Toast.LENGTH_LONG).show();
-        }
-
         // Present loading screen
         final ProgressDialog ringProgressDialog = ProgressDialog.show(PostDropActivity.this, "Just a sec...", "Dropping your drop...", true);
         ringProgressDialog.setCancelable(false);
@@ -113,24 +108,15 @@ public class PostDropActivity extends Activity {
             }
         }
 
-        int max = Integer.MAX_VALUE - 1;
-        int min = 0;
-        Random r = new Random();
-        int dropNum = r.nextInt(max - min + 1) + min; // Make hopefully unique number for key.
-        String dropKey = "drop" + String.valueOf(dropNum);
+        // Convert image to string
+        String imageString = "";
+        if(imageBitmap != null) {
+            imageString = BitMapToString(imageBitmap);
+        }
 
         // Upload to database
-        /*
-        Map<String, Object> drops = new HashMap<String, Object>();
-        Drop drop = new Drop(BitMapToString(imageBitmap),
-                            currentLocation.getLatitude(),
-                            currentLocation.getLongitude(),
-                            tagsString,
-                            textView.getText().toString());
-        drops.put(dropKey, drop);
-        */
         Map<String, Object> drop = new HashMap<String, Object>();
-        drop.put("image", BitMapToString(imageBitmap));
+        drop.put("image", imageString);
         drop.put("lat", currentLocation.getLatitude());
         drop.put("lon", currentLocation.getLongitude());
         drop.put("tags", tagsString);
