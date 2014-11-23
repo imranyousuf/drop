@@ -1,13 +1,13 @@
 package drop.drop;
 
 import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,7 +26,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.Map;
 
-public class MainActivity extends Activity {
+public class MainActivity extends FragmentActivity {
 
     Firebase dropFirebase;
     GoogleMap map;
@@ -36,13 +36,33 @@ public class MainActivity extends Activity {
 
     Location currentLocation;
 
+    View shadowView;
+
+    private FBFragment fbFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         ActionBar actionBar = getActionBar();
         actionBar.hide();
 
         setContentView(R.layout.activity_main);
+
+
+        shadowView = (View) findViewById(R.id.shadow);
+        shadowView.getBackground().setAlpha(0); // Dont show shadow initially until popover view is shown.
+
+        if (savedInstanceState == null) {
+            // Add the fragment on initial activity setup
+            fbFragment = new FBFragment();
+            fbFragment.parentActivity = this; // give it a ref to communicate with this activity
+            getSupportFragmentManager().beginTransaction().add(android.R.id.content, fbFragment).commit();
+        } else {
+            // Or set the fragment from restored state info
+            fbFragment = (FBFragment) getSupportFragmentManager().findFragmentById(android.R.id.content);
+        }
+        getSupportFragmentManager().beginTransaction().hide(fbFragment).commit(); // Dont show facebook login button until needed.
 
         initLocation();
         initMap();
@@ -123,32 +143,46 @@ public class MainActivity extends Activity {
                         .title((String) drop.get("tags"))
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.drop_message_icon)));
             }
-
             @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-            }
-
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
             @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-            }
-
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
             @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-            }
-
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
-            }
+            public void onCancelled(FirebaseError firebaseError) {}
         });
     }
 
-    public void postDropPressed(View view) {
-        // TODO: CHECK TO SEE IF USER SIGNED IN BEFORE ALLOWING POST. IF NOT SIGNED IN, LAUNCH SIGN IN.
+    public void showFacebook() {
+        // Make sure to make darken background when showing popover
+        fbFragment.SHOWN = true; // tell the fragment it is visible.
+        getSupportFragmentManager().beginTransaction().show(fbFragment).commit();
+        shadowView.getBackground().setAlpha(200); // Max val 255
+    }
 
-      //  Intent intent=new Intent(this, FBLogin.class);
-      //  startActivity(intent);
+    public void hideFacebook() {
+        fbFragment.SHOWN = false;
+        getSupportFragmentManager().beginTransaction().hide(fbFragment).commit();
+        shadowView.getBackground().setAlpha(0); // Max val 255
+    }
 
+    public void composeDrop() {
         Intent intent = new Intent(this, PostDropActivity.class);
         startActivity(intent);
+    }
+
+    public void postDropPressed(View view) {
+
+        if(fbFragment.LOGGED_IN) {
+            composeDrop();
+        } else {
+            showFacebook();
+        }
+    }
+
+    public void settingsPressed(View view) {
+        // TEMPORARILY A DEBUG BUTTON
+        showFacebook();
     }
 }
