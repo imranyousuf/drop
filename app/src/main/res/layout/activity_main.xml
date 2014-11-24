@@ -90,7 +90,8 @@
             android:text="Settings"
             android:textSize="10dp"
             android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"/>
+            android:layout_alignParentEnd="true"
+            android:onClick="settingsPressed"/>
 
         <ImageButton
             android:id="@+id/time_button"
@@ -104,5 +105,13 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"/>
     </RelativeLayout>
+
+    <View
+        android:id="@+id/shadow"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000000"
+        android:clickable="false">
+    </View>
 
 </RelativeLayout>
