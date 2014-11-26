@@ -8,11 +8,13 @@ public class Drop {
     private Double lat;
     private Double lon;
     private String tags;
+    private String key;
     private String text;
 
     public Drop() {}
 
-    public Drop(String image, Double lat, Double lon, String tags, String text) {
+    public Drop(String key, String image, Double lat, Double lon, String tags, String text) {
+        this.key = key;
         this.image = image;
         this.lat = lat;
         this.lon = lon;
@@ -35,4 +37,5 @@ public class Drop {
     public String getText() {
         return text;
     }
+    public String getKey() { return key; }
 }

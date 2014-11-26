@@ -1,6 +1,9 @@
 package drop.drop;
 
 import android.app.ActionBar;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -8,6 +11,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.NotificationCompat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,9 +28,12 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 public class MainActivity extends FragmentActivity {
+
+    double TRIGGER_RADIUS = 100; // Drop pick up trigger radius in meters
 
     Firebase dropFirebase;
     GoogleMap map;
@@ -40,15 +47,20 @@ public class MainActivity extends FragmentActivity {
 
     private FBFragment fbFragment;
 
+    ArrayList<Drop> drops; // Holds all the drops
+    ArrayList<Drop> notifications; // Holds all active notifications
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        drops = new ArrayList<Drop>();
+        notifications = new ArrayList<Drop>();
 
         ActionBar actionBar = getActionBar();
         actionBar.hide();
 
         setContentView(R.layout.activity_main);
-
 
         shadowView = (View) findViewById(R.id.shadow);
         shadowView.getBackground().setAlpha(0); // Dont show shadow initially until popover view is shown.
@@ -99,12 +111,62 @@ public class MainActivity extends FragmentActivity {
                     zoomMapToLocation(location);
                 }
                 currentLocation = location;
+                checkForFoundDrop(currentLocation);
             }
             public void onStatusChanged(String provider, int status, Bundle extras) {}
             public void onProviderEnabled(String provider) {}
             public void onProviderDisabled(String provider) {}
         };
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
+    }
+
+    // Called every time the location of user changes.
+    public void checkForFoundDrop(Location userLocation) {
+        double minDistance = Double.MAX_VALUE;
+        Drop closestDropInRadius = null; // May be more than one drop in trigger radius
+        for (Drop drop : drops) {
+            Location dropLocation = new Location("");
+            dropLocation.setLatitude(drop.getLat());
+            dropLocation.setLongitude(drop.getLon());
+            double distanceInMeters =  userLocation.distanceTo(dropLocation);
+            if(distanceInMeters < TRIGGER_RADIUS && distanceInMeters < minDistance) {
+                minDistance = distanceInMeters;
+                closestDropInRadius = drop;
+            }
+        }
+
+        if(closestDropInRadius != null) { // a drop was found in range
+            pushNotification(closestDropInRadius);
+        }
+    }
+
+    public void pushNotification(Drop drop) { // Push a notification to the user notifying them of the drop they found
+        if(notifications.contains(drop)) {
+            return; // if a notification has already been posted for this drop, dont do it again.
+        }
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setContentTitle("You've found a Drop! Tap here to pick it up.")
+                        .setContentText(drop.getTags());
+        // Creates an explicit intent for an Activity in your app
+        Intent resultIntent = new Intent(this, DropViewerActivity.class);
+
+        // The stack builder object will contain an artificial back stack for the
+        // started Activity.
+        // This ensures that navigating backward from the Activity leads out of
+        // your application to the Home screen.
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        // Adds the back stack for the Intent (but not the Intent itself)
+        stackBuilder.addParentStack(DropViewerActivity.class);
+        // Adds the Intent that starts the Activity to the top of the stack
+        stackBuilder.addNextIntent(resultIntent);
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0,PendingIntent.FLAG_UPDATE_CURRENT);
+        mBuilder.setContentIntent(resultPendingIntent);
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        // Remember the drops that have been notified about...
+        notifications.add(drop); // remember this notification
+        mNotificationManager.notify(notifications.size()-1, mBuilder.build()); // use index to remember
     }
 
     private void initMap() {
@@ -142,6 +204,16 @@ public class MainActivity extends FragmentActivity {
                         .position(new LatLng((Double) drop.get("lat"), ((Double) drop.get("lon"))))
                         .title((String) drop.get("tags"))
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.drop_message_icon)));
+
+                // Save drops for use later
+                Drop dropObj = new Drop(snapshot.getKey(),              // key in database
+                                        "",                             // image (not storing this for now)
+                                        (Double) drop.get("lat"),
+                                        (Double) drop.get("lon"),
+                                        (String) drop.get("tags"),
+                                        (String)drop.get("text"));
+                drops.add(dropObj);
+
             }
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
@@ -173,7 +245,6 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void postDropPressed(View view) {
-
         if(fbFragment.LOGGED_IN) {
             composeDrop();
         } else {

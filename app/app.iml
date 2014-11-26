@@ -83,6 +83,7 @@
     <orderEntry type="library" exported="" name="firebase-client-android-2.0.1" level="project" />
     <orderEntry type="library" exported="" name="jackson-core-2.2.2" level="project" />
     <orderEntry type="library" exported="" name="jackson-databind-2.2.2" level="project" />
+    <orderEntry type="library" exported="" name="android-toq-api-1.5.2" level="project" />
     <orderEntry type="library" exported="" name="firebase-client-jvm-2.0.1" level="project" />
     <orderEntry type="library" exported="" name="tubesock-0.0.10" level="project" />
     <orderEntry type="library" exported="" name="jackson-annotations-2.2.2" level="project" />

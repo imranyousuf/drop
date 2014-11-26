@@ -22,7 +22,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".MainActivity"
+            android:name="drop.drop.MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
             <intent-filter>
@@ -32,15 +32,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".PostDropActivity"
+            android:name="drop.drop.PostDropActivity"
             android:label="@string/title_activity_post_drop"
             android:screenOrientation="portrait" >
         </activity>
         <activity android:name="com.facebook.LoginActivity" >
-        </activity>
-        <activity
-            android:name=".FBLogin"
-            android:label="@string/title_activity_fblogin" >
         </activity>
 
         <meta-data
@@ -53,6 +49,10 @@
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyAwqB3XAv2B9Be35e6NhIBWF8bmJwF-yKI" />
 
+        <activity
+            android:name="drop.drop.DropViewerActivity"
+            android:label="@string/title_activity_drop_viewer" >
+        </activity>
     </application>
 
 </manifest>
