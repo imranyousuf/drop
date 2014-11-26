@@ -1,9 +1,6 @@
 package drop.drop;
 
 import android.app.ActionBar;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -11,7 +8,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.NotificationCompat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,7 +24,6 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 public class MainActivity extends FragmentActivity {
@@ -44,6 +39,8 @@ public class MainActivity extends FragmentActivity {
     Location currentLocation;
 
     View shadowView;
+
+    Toq toq;
 
     private FBFragment fbFragment;
 
@@ -62,6 +59,7 @@ public class MainActivity extends FragmentActivity {
 
         setContentView(R.layout.activity_main);
 
+
         shadowView = (View) findViewById(R.id.shadow);
         shadowView.getBackground().setAlpha(0); // Dont show shadow initially until popover view is shown.
 
@@ -79,6 +77,7 @@ public class MainActivity extends FragmentActivity {
         initLocation();
         initMap();
         initDatabase();
+        initToqResources();
     }
 
     @Override
@@ -100,6 +99,14 @@ public class MainActivity extends FragmentActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public void initToqResources() {
+        // Init various Toq resources
+        toq = new Toq(this.getApplicationContext());
+        // Not sure about calling super.onStart here.
+        super.onStart();
+        toq.onStart();
+    }
+
     public void initLocation() {
         currentLocation = null;
         // Acquire a reference to the system Location Manager
@@ -112,6 +119,9 @@ public class MainActivity extends FragmentActivity {
                 }
                 currentLocation = location;
                 checkForFoundDrop(currentLocation);
+                // if current location is within proximity of drop in database sendNotification
+
+                toq.sendNotification(getApplicationContext());
             }
             public void onStatusChanged(String provider, int status, Bundle extras) {}
             public void onProviderEnabled(String provider) {}
@@ -245,6 +255,7 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void postDropPressed(View view) {
+
         if(fbFragment.LOGGED_IN) {
             composeDrop();
         } else {
@@ -256,4 +267,11 @@ public class MainActivity extends FragmentActivity {
         // TEMPORARILY A DEBUG BUTTON
         showFacebook();
     }
+
+    public void calendarPressed(View view) {
+        // TEMP: Install applet on Toq
+        toq.install(view);
+    }
+
+
 }
