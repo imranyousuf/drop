@@ -22,6 +22,17 @@ public class Drop {
         this.text= text;
     }
 
+    public void setImage(String image) {this.image = image;}
+    public void setLat(Double lat) {
+        this.lat = lat;
+    }
+    public void setLon(Double lon) { this.lon = lon;}
+    public void setTags(String tags) { this.tags = tags;}
+    public void setText(String text) {
+        this.text = text;
+    }
+    public void setKey(String key) { this.key = key;}
+
     public String getImage() {
         return image;
     }

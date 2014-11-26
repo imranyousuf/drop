@@ -82,7 +82,7 @@ public class MainActivity extends FragmentActivity {
         initLocation();
         initMap();
         initDatabase();
-        initToqResources();
+        //initToqResources(); TODO Will implement toq functionality later
     }
 
     @Override
@@ -126,7 +126,8 @@ public class MainActivity extends FragmentActivity {
                 checkForFoundDrop(currentLocation);
                 // if current location is within proximity of drop in database sendNotification
 
-                toq.sendNotification(getApplicationContext());
+                // TODO Gunna want to move this somewhere else...
+                //toq.sendNotification(getApplicationContext());
             }
             public void onStatusChanged(String provider, int status, Bundle extras) {}
             public void onProviderEnabled(String provider) {}
@@ -151,11 +152,11 @@ public class MainActivity extends FragmentActivity {
         }
 
         if(closestDropInRadius != null) { // a drop was found in range
-            pushNotification(closestDropInRadius);
+            pushDropFoundNotification(closestDropInRadius);
         }
     }
 
-    public void pushNotification(Drop drop) { // Push a notification to the user notifying them of the drop they found
+    public void pushDropFoundNotification(Drop drop) { // Push a notification to the user notifying them of the drop they found
         if(notifications.contains(drop)) {
             return; // if a notification has already been posted for this drop, dont do it again.
         }
@@ -166,6 +167,7 @@ public class MainActivity extends FragmentActivity {
                         .setContentText(drop.getTags());
         // Creates an explicit intent for an Activity in your app
         Intent resultIntent = new Intent(this, DropViewerActivity.class);
+        resultIntent.putExtra("dropKey", drop.getKey());
 
         // The stack builder object will contain an artificial back stack for the
         // started Activity.
