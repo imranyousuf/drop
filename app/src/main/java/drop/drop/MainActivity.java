@@ -24,6 +24,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+
 import java.util.Map;
 
 public class MainActivity extends FragmentActivity {
@@ -37,6 +38,8 @@ public class MainActivity extends FragmentActivity {
     Location currentLocation;
 
     View shadowView;
+
+    Toq toq;
 
     private FBFragment fbFragment;
 
@@ -67,6 +70,7 @@ public class MainActivity extends FragmentActivity {
         initLocation();
         initMap();
         initDatabase();
+        initToqResources();
     }
 
     @Override
@@ -88,6 +92,14 @@ public class MainActivity extends FragmentActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public void initToqResources() {
+        // Init various Toq resources
+        toq = new Toq(this.getApplicationContext());
+        // Not sure about calling super.onStart here.
+        super.onStart();
+        toq.onStart();
+    }
+
     public void initLocation() {
         currentLocation = null;
         // Acquire a reference to the system Location Manager
@@ -99,6 +111,9 @@ public class MainActivity extends FragmentActivity {
                     zoomMapToLocation(location);
                 }
                 currentLocation = location;
+                // if current location is within proximity of drop in database sendNotification
+
+                toq.sendNotification(getApplicationContext());
             }
             public void onStatusChanged(String provider, int status, Bundle extras) {}
             public void onProviderEnabled(String provider) {}
@@ -185,4 +200,11 @@ public class MainActivity extends FragmentActivity {
         // TEMPORARILY A DEBUG BUTTON
         showFacebook();
     }
+
+    public void calendarPressed(View view) {
+        // TEMP: Install applet on Toq
+        toq.install(view);
+    }
+
+
 }
