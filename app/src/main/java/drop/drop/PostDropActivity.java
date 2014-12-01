@@ -118,7 +118,6 @@ public class PostDropActivity extends Activity {
         drop.put("lon", currentLocation.getLongitude());
         drop.put("tags", tagsString);
         drop.put("text", textView.getText().toString());
-
         dropFirebase.child("drops").push().setValue(drop, new Firebase.CompletionListener() {
             @Override
             public void onComplete(FirebaseError firebaseError, Firebase firebase) {
