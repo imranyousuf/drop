@@ -102,8 +102,8 @@
         android:id="@+id/toggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/toggle_friends"
-        android:layout_alignTop="@+id/flip_camera_button"
+        android:src="@drawable/toggle_public"
+        android:layout_centerInParent="true"
         android:layout_centerHorizontal="true" />
 
     <ImageButton
