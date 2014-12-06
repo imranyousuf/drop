@@ -29,17 +29,17 @@
         android:layout_alignParentEnd="true"/>
 
 
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/drop_button"
-        android:background="@null"
-        android:layout_margin="10dp"
-        android:id="@+id/publish_button"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:onClick="postDropPressed"/>
+    <!--<ImageButton-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:src="@drawable/drop_button"-->
+        <!--android:background="@null"-->
+        <!--android:layout_margin="10dp"-->
+        <!--android:id="@+id/publish_button"-->
+        <!--android:layout_alignParentRight="true"-->
+        <!--android:layout_alignParentEnd="true"-->
+        <!--android:layout_alignParentBottom="true"-->
+        <!--android:onClick="postDropPressed"/>-->
 
     <RelativeLayout
         android:id="@+id/top_bar"
@@ -69,6 +69,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
+            android:layout_margin="10dp"
             android:src="@drawable/drop_logo" />
 
         <ImageButton
@@ -82,6 +83,39 @@
             android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"/>
-        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <ImageButton
+        android:id="@+id/flash_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:src="@drawable/flash_off_icon"
+        android:layout_margin="10dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignBottom="@id/camera"/>
+
+    <ImageView
+        android:id="@+id/toggle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/toggle_friends"
+        android:layout_alignTop="@+id/flip_camera_button"
+        android:layout_centerHorizontal="true" />
+
+    <ImageButton
+        android:id="@+id/flip_camera_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:src="@drawable/flip_camera_icon"
+        android:layout_margin="10dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignBottom="@id/camera"/>
 
 </RelativeLayout>
