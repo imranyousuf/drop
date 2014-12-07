@@ -9,5 +9,8 @@
     <string name="title_activity_fblogin">FBLogin</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_drop_viewer">DropViewerActivity</string>
+    <string name="title_activity_sign_up">SignUp</string>
+    <string name="title_activity_make_profile">MakeProfile</string>
+    <string name="title_activity_login">Login</string>
 
 </resources>
