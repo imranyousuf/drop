@@ -15,7 +15,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.v4.view.GestureDetectorCompat;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -56,10 +55,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     LocationListener mLocationListener;
     Location currentLocation;
     ImageView photo;
-    GestureDetectorCompat gDetect;
     boolean photoBeingPreviewed = false;
     boolean usingFrontFacingCamera = false;
-    RelativeLayout mSurfaceViewWrapper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,6 +167,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
+    public void switchPressed(View view) {
+
+    }
+
     //*********************************************************************************************
     //  CAMERA
     //*********************************************************************************************
@@ -178,7 +179,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         photo = (ImageView) findViewById(R.id.photo);
         photo.setVisibility(View.INVISIBLE);
         mSurfaceView = (SurfaceView) findViewById(R.id.surface_camera);
-        mSurfaceViewWrapper = (RelativeLayout) findViewById(R.id.surface_camera_wrap);
 
         mSurfaceHolder = mSurfaceView.getHolder();
         mSurfaceHolder.addCallback(this);
@@ -263,16 +263,23 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     private void takePicture() {
         photoBeingPreviewed = true;
-        mCamera.takePicture(null, null, mPictureCallback);
+        mCamera.takePicture(null, null, null, mPictureCallback);
     }
 
     Camera.PictureCallback mPictureCallback = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            Bitmap bitmap = BitmapFactory.decodeByteArray(data , 0, data .length);
-            if(bitmap != null) {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(data , 0, data.length);
+            if(bitmap != null){
+                // TODO: use the jpeg data array to determine orientation (these values are hardcoded for my phone).
                 Matrix matrix = new Matrix();
-                matrix.postRotate(90);
+                if(usingFrontFacingCamera){
+                    matrix.postRotate(-90);
+                    matrix.postScale(-1,1);
+                }
+                else {
+                    matrix.postRotate(90);
+                }
                 Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
                 photo.setImageBitmap(rotatedBitmap);
                 photo.setVisibility(View.VISIBLE);
@@ -284,10 +291,15 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     };
 
     public void switchCamerasPressed(View view) {
+        // Bail if they are previewing an image
+        if(photoBeingPreviewed) return;
+
         // Close existing camera
         mCamera.stopPreview();
+        mCamera.setPreviewCallback(null);
         photoBeingPreviewed = false;
         mCamera.release();
+        mCamera = null;
 
         // Open new camera
         if(!usingFrontFacingCamera) {
@@ -324,10 +336,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     public void surfaceCreated(SurfaceHolder holder) {
         mCamera = Camera.open();
-        updatePreview();
     }
 
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
+        updatePreview();
     }
 
     private void updatePreview() { // Parametarize the preview properly
@@ -356,6 +368,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         mCamera.stopPreview();
         mPreviewRunning = false;
         mCamera.release();
+        mCamera = null;
     }
 
     private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
