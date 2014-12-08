@@ -44,13 +44,7 @@
 
     <RelativeLayout
         android:id="@+id/top_bar"
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true">
+        style="@style/TopBar">
 
         <ImageButton
             android:id="@+id/friends_button"
