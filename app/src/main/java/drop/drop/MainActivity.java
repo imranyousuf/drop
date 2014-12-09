@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -53,6 +54,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     LocationListener mLocationListener;
     Location currentLocation;
     ImageView photo;
+    ImageButton friends;
     GestureDetectorCompat gDetect;
     boolean photoBeingPreviewed = false;
     boolean usingFrontFacingCamera = false;
@@ -64,12 +66,14 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         actionBar.hide();
         setContentView(R.layout.activity_main);
 
+
+
         runFirebase();
         runCamera();
         runMap();
     }
 
-    //*********************************************************************************************
+    //********************************************************************* ************************
     //  FIREBASE
     //*********************************************************************************************
     private void runFirebase() {
@@ -118,6 +122,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 // if current location is within proximity of drop in database sendNotification
 
                 // TODO Gunna want to move this somewhere else... Dont want to call every time
+
+                // make a call to handleNotification()
                 //toq.sendNotification(getApplicationContext());
             }
             public void onStatusChanged(String provider, int status, Bundle extras) {}
@@ -311,6 +317,14 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         mCamera.stopPreview();
         mPreviewRunning = false;
         mCamera.release();
+    }
+
+    // Launch Friends activity
+    public void launchFriendsActivity(View view) {
+        friends = (ImageButton) findViewById(R.id.friends_button);
+
+        Intent intent = new Intent(this, Friends.class);
+        startActivity(intent);
     }
 
 }
