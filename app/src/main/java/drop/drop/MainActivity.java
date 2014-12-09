@@ -26,10 +26,12 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -37,7 +39,9 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
@@ -57,6 +61,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     ImageView photo;
     boolean photoBeingPreviewed = false;
     boolean usingFrontFacingCamera = false;
+    Switch public_switch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +101,50 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private void launchLogin() {
         Intent intent = new Intent(this, Login.class);
         startActivity(intent);
+    }
+
+    private void uploadDrop() {
+        // Convert image to string
+        String imageString = "";
+        if(rotatedBitmap != null) {
+            imageString = ImageHelper.BitMapToString(rotatedBitmap);
+        }
+
+        // Upload to database
+        Map<String, Object> drop = new HashMap<String, Object>();
+        drop.put("image", imageString);
+        drop.put("lat", currentLocation.getLatitude());
+        drop.put("lon", currentLocation.getLongitude());
+        drop.put("public", public_switch.isChecked());
+        Firebase newDrop = firebase.child("drops").push();
+        newDrop.setValue(drop, new Firebase.CompletionListener() {
+            @Override
+            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                if(firebaseError == null) {
+                    Toast.makeText(getApplicationContext(), "Your drop has been dropped!", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Something went wrong... please try again.", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        // Add key to user profile of drops
+        String dropKey = newDrop.getKey(); // Drop Key
+        SharedPreferences prefs = getSharedPreferences("drop", MODE_PRIVATE);
+        String UID = prefs.getString("uid", null); // User UID
+        Firebase userDrops = firebase.child("users").child(UID).child("drops");
+        Firebase newUserDrop = userDrops.push(); // Keys dont matter for these
+        newUserDrop.setValue(dropKey, new Firebase.CompletionListener() {
+            @Override
+            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                if(firebaseError != null) {
+                    Toast.makeText(getApplicationContext(), "Something went wrong... please try again.", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+
+
     }
 
     //*********************************************************************************************
@@ -179,6 +228,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         photo = (ImageView) findViewById(R.id.photo);
         photo.setVisibility(View.INVISIBLE);
         mSurfaceView = (SurfaceView) findViewById(R.id.surface_camera);
+        public_switch = (Switch) findViewById(R.id.public_switch);
 
         mSurfaceHolder = mSurfaceView.getHolder();
         mSurfaceHolder.addCallback(this);
@@ -256,11 +306,17 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         });
         photo.startAnimation(animation);
-        Toast.makeText(getApplicationContext(), "Droping...", Toast.LENGTH_LONG).show();
 
-        //TODO upload image to database
+        // Upload image to database in background
+        Toast.makeText(getApplicationContext(), "Droping...", Toast.LENGTH_LONG).show();
+        new Thread(new Runnable() {
+            public void run() {
+                uploadDrop();
+            }
+        }).start();
     }
 
+    Bitmap rotatedBitmap;
     private void takePicture() {
         photoBeingPreviewed = true;
         mCamera.takePicture(null, null, null, mPictureCallback);
@@ -280,7 +336,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 else {
                     matrix.postRotate(90);
                 }
-                Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
                 photo.setImageBitmap(rotatedBitmap);
                 photo.setVisibility(View.VISIBLE);
                 Toast.makeText(getApplicationContext(), "How's that look? Swipe to the side to redo, or swipe down to drop.", Toast.LENGTH_LONG).show();
