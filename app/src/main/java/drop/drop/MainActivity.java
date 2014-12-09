@@ -9,12 +9,12 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.v4.view.GestureDetectorCompat;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -22,7 +22,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+<<<<<<< HEAD
 import android.widget.ImageButton;
+=======
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+>>>>>>> b9f0bb8098d41656a5c6cd04d8a58dad252d9e86
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -172,12 +177,17 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
+    public void switchPressed(View view) {
+
+    }
+
     //*********************************************************************************************
     //  CAMERA
     //*********************************************************************************************
 
     private void runCamera() {
-        //photo = (ImageView) findViewById(R.id.photo);
+        photo = (ImageView) findViewById(R.id.photo);
+        photo.setVisibility(View.INVISIBLE);
         mSurfaceView = (SurfaceView) findViewById(R.id.surface_camera);
 
         mSurfaceHolder = mSurfaceView.getHolder();
@@ -203,7 +213,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 }
             }
             public void onTap() {
-                Toast.makeText(getApplicationContext(), "tap", Toast.LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(), "tap", Toast.LENGTH_LONG).show();
                 if(!photoBeingPreviewed) {
                     takePicture();
                 }
@@ -219,25 +229,70 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         photoBeingPreviewed = false;
         mCamera.startPreview();
 
-        //TODO use boolean to animate away the image in the proper direction.
+        // Animate the image the proper directions
+        Animation animation;
+        if(!swipeRight) {
+            animation = AnimationUtils.loadAnimation(this, R.anim.swipe_left);
+        } else {
+            animation = AnimationUtils.loadAnimation(this, R.anim.swipe_right);
+        }
+        animation.setAnimationListener(new Animation.AnimationListener(){
+            @Override
+            public void onAnimationStart(Animation arg0) {}
+            @Override
+            public void onAnimationRepeat(Animation arg0) {}
+            @Override
+            public void onAnimationEnd(Animation arg0) {
+                photo.setVisibility(View.INVISIBLE);
+            }
+        });
+        photo.startAnimation(animation);
     }
 
     private void dropImage() {
         photoBeingPreviewed = false;
-        //TODO this with animation;
+        mCamera.startPreview();
 
+        // Animate the image the proper directions
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.swipe_down);
+        animation.setAnimationListener(new Animation.AnimationListener(){
+            @Override
+            public void onAnimationStart(Animation arg0) {}
+            @Override
+            public void onAnimationRepeat(Animation arg0) {}
+            @Override
+            public void onAnimationEnd(Animation arg0) {
+                photo.setVisibility(View.INVISIBLE);
+            }
+        });
+        photo.startAnimation(animation);
+        Toast.makeText(getApplicationContext(), "Droping...", Toast.LENGTH_LONG).show();
+
+        //TODO upload image to database
     }
 
     private void takePicture() {
         photoBeingPreviewed = true;
-        mCamera.takePicture(null, null, mPictureCallback);
+        mCamera.takePicture(null, null, null, mPictureCallback);
     }
 
     Camera.PictureCallback mPictureCallback = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            Bitmap bitmap = BitmapFactory.decodeByteArray(data , 0, data .length);
-            if(bitmap != null) {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(data , 0, data.length);
+            if(bitmap != null){
+                // TODO: use the jpeg data array to determine orientation (these values are hardcoded for my phone).
+                Matrix matrix = new Matrix();
+                if(usingFrontFacingCamera){
+                    matrix.postRotate(-90);
+                    matrix.postScale(-1,1);
+                }
+                else {
+                    matrix.postRotate(90);
+                }
+                Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                photo.setImageBitmap(rotatedBitmap);
+                photo.setVisibility(View.VISIBLE);
                 Toast.makeText(getApplicationContext(), "How's that look? Swipe to the side to redo, or swipe down to drop.", Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(getApplicationContext(), "Hmm that didn't work... please try again.", Toast.LENGTH_LONG).show();
@@ -246,10 +301,15 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     };
 
     public void switchCamerasPressed(View view) {
+        // Bail if they are previewing an image
+        if(photoBeingPreviewed) return;
+
         // Close existing camera
         mCamera.stopPreview();
+        mCamera.setPreviewCallback(null);
         photoBeingPreviewed = false;
         mCamera.release();
+        mCamera = null;
 
         // Open new camera
         if(!usingFrontFacingCamera) {
@@ -298,8 +358,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         }
         Camera.Parameters parameters = mCamera.getParameters();
         List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-        Camera.Size previewSize = previewSizes.get(0);
+        Camera.Size previewSize = getOptimalPreviewSize(previewSizes, mSurfaceView.getWidth(), mSurfaceView.getHeight());
         parameters.setPreviewSize(previewSize.width, previewSize.height);
+        parameters.setPictureSize(previewSize.width, previewSize.height);
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
             mCamera.setDisplayOrientation(90);
         }
@@ -317,6 +378,39 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         mCamera.stopPreview();
         mPreviewRunning = false;
         mCamera.release();
+        mCamera = null;
+    }
+
+    private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
+        final double ASPECT_TOLERANCE = 0.1;
+        double targetRatio=(double)h / w;
+
+        if (sizes == null) return null;
+
+        Camera.Size optimalSize = null;
+        double minDiff = Double.MAX_VALUE;
+
+        int targetHeight = h;
+
+        for (Camera.Size size : sizes) {
+            double ratio = (double) size.width / size.height;
+            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
+            if (Math.abs(size.height - targetHeight) < minDiff) {
+                optimalSize = size;
+                minDiff = Math.abs(size.height - targetHeight);
+            }
+        }
+
+        if (optimalSize == null) {
+            minDiff = Double.MAX_VALUE;
+            for (Camera.Size size : sizes) {
+                if (Math.abs(size.height - targetHeight) < minDiff) {
+                    optimalSize = size;
+                    minDiff = Math.abs(size.height - targetHeight);
+                }
+            }
+        }
+        return optimalSize;
     }
 
     // Launch Friends activity

@@ -5,26 +5,19 @@
     tools:context=".MainActivity"
     android:id="@+id/top_layout">
 
-
     <SurfaceView android:id="@+id/surface_camera"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
+        android:layout_centerInParent="true"
         android:onClick="cameraPressed"/>
 
-    <!--
     <ImageView
         android:id="@+id/photo"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"/>
-    -->
+        android:scaleType="fitXY"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"/>
+
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/map"
@@ -88,12 +81,15 @@
         android:id="@+id/global_switch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textOff="FRIENDS"
-        android:textOn="EVERYONE"
         android:onClick="switchPressed"
-        android:layout_margin="10dp"
+        android:thumbTextPadding="20dp"
+        android:padding="10dp"
+        android:textOff=""
+        android:textOn=""
         android:layout_centerHorizontal="true"
-        android:layout_above="@id/map"/>
+        android:layout_above="@id/map"
+        android:thumb="@drawable/switch_bg"
+        android:track="@drawable/track_bg"/>
 
     <!-- Wont be using an image view, been replaced with switch above.
     <ImageView
