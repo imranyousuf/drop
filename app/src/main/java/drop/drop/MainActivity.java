@@ -26,20 +26,34 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.ImageButton;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.Toast;
+import android.os.Handler;
 
 import com.firebase.client.AuthData;
+import com.firebase.client.ChildEventListener;
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
@@ -50,7 +64,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     boolean mPreviewRunning = false;
     Camera mCamera;
     Firebase firebase;
-    boolean loggedIn = false;
+    boolean loggedIn = true;
     GoogleMap map;
     Fragment mapFragment;
     LocationManager mLocationManager;
@@ -61,6 +75,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     GestureDetectorCompat gDetect;
     boolean photoBeingPreviewed = false;
     boolean usingFrontFacingCamera = false;
+    Switch public_switch;
+    ArrayList<Drop> drops; // Holds all the drops
+    ProgressBar spinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,20 +85,36 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         ActionBar actionBar = getActionBar();
         actionBar.hide();
         setContentView(R.layout.activity_main);
-
-
+        drops = new ArrayList<Drop>();
+        spinner = (ProgressBar) findViewById(R.id.spinner);
+        spinner.animate();
+        spinner.setVisibility(View.GONE);
 
         runFirebase();
         runCamera();
         runMap();
     }
 
-    //********************************************************************* ************************
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(loggedIn == false) {
+            launchLogin();
+        }
+    }
+
+    //*********************************************************************************************
     //  FIREBASE
     //*********************************************************************************************
     private void runFirebase() {
         Firebase.setAndroidContext(this);
         firebase = new Firebase("https://dropdatabase.firebaseio.com");
+        runAuthenticationListener();
+        runDropListener();
+    }
+
+    private void runAuthenticationListener() {
         firebase.addAuthStateListener(new Firebase.AuthStateListener() {
             @Override
             public void onAuthStateChanged(AuthData authData) {
@@ -93,9 +126,37 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     editor.commit();
                 } else { // User is not logged in
                     loggedIn = false;
-                    launchLogin();
                 }
             }
+        });
+    }
+
+    private void runDropListener() {
+        firebase.child("drops").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
+
+                Map<String, Object> drop = (Map<String, Object>) snapshot.getValue();
+                // Save drops for use later
+                Drop dropObj = new Drop();
+                dropObj.setKey(snapshot.getKey());
+                dropObj.setLat((Double)drop.get("lat"));
+                dropObj.setLon((Double)drop.get("lon"));
+                dropObj.setPublic(((Boolean)drop.get("public")).booleanValue());
+                dropObj.setDropperUID((String)drop.get("dropperUID"));
+                if(!drops.contains(dropObj)) {
+                    drops.add(dropObj);
+                    addDropToMap(dropObj);
+                }
+            }
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {}
         });
     }
 
@@ -104,11 +165,65 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         startActivity(intent);
     }
 
+    private void uploadDrop() {
+        // Convert image to string
+        String imageString = "";
+        if(rotatedBitmap != null) {
+            imageString = ImageHelper.BitMapToString(rotatedBitmap);
+        }
+
+        // Upload image first to image database and retrieve the image uid.
+        Firebase newImage = firebase.child("photos").push();
+        newImage.setValue(imageString, new Firebase.CompletionListener() {
+            @Override
+            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                if(firebaseError != null) {
+                    Toast.makeText(getApplicationContext(), "There was a problem uploading the photo =/", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        // Get User UID
+        SharedPreferences prefs = getSharedPreferences("drop", MODE_PRIVATE);
+        String UID = prefs.getString("uid", null); // User UID
+
+        // Upload to database
+        Map<String, Object> drop = new HashMap<String, Object>();
+        drop.put("epoch", System.currentTimeMillis());
+        drop.put("imageKey", newImage.getKey());
+        drop.put("lat", currentLocation.getLatitude());
+        drop.put("lon", currentLocation.getLongitude());
+        drop.put("public", public_switch.isChecked());
+        drop.put("dropperUID", UID);
+        Firebase newDrop = firebase.child("drops").push();
+        newDrop.setValue(drop, new Firebase.CompletionListener() {
+            @Override
+            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                if(firebaseError == null) {
+                    Toast.makeText(getApplicationContext(), "Your drop has been dropped!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Something went wrong... please try again.", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        // Add key to user profile of drops
+        String dropKey = newDrop.getKey(); // Drop Key
+        Firebase userDrops = firebase.child("users").child(UID).child("drops");
+        Firebase newUserDrop = userDrops.push(); // Keys dont matter for these
+        newUserDrop.setValue(dropKey, new Firebase.CompletionListener() {
+            @Override
+            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                if(firebaseError != null) {
+                    Toast.makeText(getApplicationContext(), "Something went wrong... please try again.", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
     //*********************************************************************************************
     //  MAP and LOCATION
     //*********************************************************************************************
-
-    // TODO finishing implementing map functionality
     private void runMap() {
         // Init location
         currentLocation = null;
@@ -134,6 +249,16 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             public void onProviderDisabled(String provider) {}
         };
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
+        // If no GPS link after 5 seconds then switch providers.
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(currentLocation == null) {
+                    mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
+                }
+            }
+        }, 5000);
 
         // Init map
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
@@ -160,9 +285,53 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 }
             });
         }
+
+    }
+
+    private void updateDropsOnMap() {
+        map.clear();
+        for (Drop drop : drops) {
+            addDropToMap(drop);
+        }
+    }
+
+    private void addDropToMap(final Drop drop) {
+        if( (drop.getPostIsPublic() != public_switch.isChecked()) ) {
+            return; // Bail is the drops should not be on the map based on the switch current state.
+        }
+
+        spinner.setVisibility(View.VISIBLE);
+        // Get the username of the drop for now, will probably get image and other data later
+        firebase.child("users").child(drop.getDropperUID()).child("username").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                spinner.setVisibility(View.GONE);
+                String username = (String) snapshot.getValue();
+                int marker_resource;
+                if(drop.getPostIsPublic() == true) {
+                    marker_resource = R.drawable.public_drop_message;
+                } else {
+                    marker_resource = R.drawable.friend_drop_message;
+                }
+                map.addMarker(new MarkerOptions()
+                        .position(new LatLng(drop.getLat(), drop.getLon()))
+                        .title(username)
+                        .icon(BitmapDescriptorFactory.fromResource(marker_resource)));
+            }
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                spinner.setVisibility(View.GONE);
+            }
+        });
     }
 
     private void zoomMapToLocation(Location location) {
+        if(location == null) {
+            // Switch providers
+            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
+            return;
+        }
+
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(location.getLatitude(), location.getLongitude()), 13));
         // TODO play with other camera positions?
@@ -175,10 +344,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
-    public void switchPressed(View view) {
-
-    }
-
     //*********************************************************************************************
     //  CAMERA
     //*********************************************************************************************
@@ -187,6 +352,12 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         photo = (ImageView) findViewById(R.id.photo);
         photo.setVisibility(View.INVISIBLE);
         mSurfaceView = (SurfaceView) findViewById(R.id.surface_camera);
+        public_switch = (Switch) findViewById(R.id.public_switch);
+        public_switch.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                updateDropsOnMap();
+            }
+        });
 
         mSurfaceHolder = mSurfaceView.getHolder();
         mSurfaceHolder.addCallback(this);
@@ -251,6 +422,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         photoBeingPreviewed = false;
         mCamera.startPreview();
 
+        // Animate map to current location
+        zoomMapToLocation(currentLocation);
+
         // Animate the image the proper directions
         Animation animation = AnimationUtils.loadAnimation(this, R.anim.swipe_down);
         animation.setAnimationListener(new Animation.AnimationListener(){
@@ -264,11 +438,17 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         });
         photo.startAnimation(animation);
-        Toast.makeText(getApplicationContext(), "Droping...", Toast.LENGTH_LONG).show();
 
-        //TODO upload image to database
+        // Upload image to database in background
+        Toast.makeText(getApplicationContext(), "Droping...", Toast.LENGTH_SHORT).show();
+        new Thread(new Runnable() {
+            public void run() {
+                uploadDrop();
+            }
+        }).start();
     }
 
+    Bitmap rotatedBitmap;
     private void takePicture() {
         photoBeingPreviewed = true;
         mCamera.takePicture(null, null, null, mPictureCallback);
@@ -288,7 +468,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 else {
                     matrix.postRotate(90);
                 }
-                Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
                 photo.setImageBitmap(rotatedBitmap);
                 photo.setVisibility(View.VISIBLE);
                 Toast.makeText(getApplicationContext(), "How's that look? Swipe to the side to redo, or swipe down to drop.", Toast.LENGTH_LONG).show();

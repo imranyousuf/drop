@@ -48,15 +48,26 @@
         <activity
             android:name=".SignUp"
             android:label="@string/title_activity_sign_up"
+<<<<<<< HEAD
             android:noHistory="true" >
         </activity>
         <activity
             android:name=".MakeProfile"
             android:label="@string/title_activity_make_profile" >
+=======
+            android:noHistory="true"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".MakeProfile"
+            android:label="@string/title_activity_make_profile"
+            android:screenOrientation="portrait" >
+>>>>>>> 08363874669724acd372161bbb29458528564e7a
         </activity>
         <activity
             android:name=".Login"
             android:label="@string/title_activity_login"
+<<<<<<< HEAD
             android:noHistory="true" >
         </activity>
         <activity
@@ -74,6 +85,10 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="drop.drop.Friends" />
+=======
+            android:noHistory="true"
+            android:screenOrientation="portrait" >
+>>>>>>> 08363874669724acd372161bbb29458528564e7a
         </activity>
     </application>
 

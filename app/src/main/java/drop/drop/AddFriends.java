@@ -17,6 +17,7 @@ import com.firebase.client.core.SyncTree;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
 
 
 public class AddFriends extends Activity {
@@ -93,34 +94,24 @@ public class AddFriends extends Activity {
 
     private void initFirebase() {
         firebase = new Firebase("https://dropdatabase.firebaseio.com");
-
-        firebase.addChildEventListener(new ChildEventListener() {
+        firebase.child("users").addChildEventListener(new ChildEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
 
+                Map<String, Object> user = (Map<String, Object>) snapshot.getValue();
+                String number = (String) user.get("number");
+                String profile_picture = (String) user.get("profile_picture");
+                String username = (String) user.get("username");
             }
-
             @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
             @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
             @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
+            public void onCancelled(FirebaseError firebaseError) {}
         });
-
     }
 
 }
