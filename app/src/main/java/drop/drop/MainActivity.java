@@ -31,6 +31,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.Toast;
+import android.os.Handler;
 
 import com.firebase.client.AuthData;
 import com.firebase.client.ChildEventListener;
@@ -84,6 +85,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         drops = new ArrayList<Drop>();
         spinner = (ProgressBar) findViewById(R.id.spinner);
         spinner.animate();
+        spinner.setVisibility(View.GONE);
 
         runFirebase();
         runCamera();
@@ -167,13 +169,25 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             imageString = ImageHelper.BitMapToString(rotatedBitmap);
         }
 
+        // Upload image first to image database and retrieve the image uid.
+        Firebase newImage = firebase.child("photos").push();
+        newImage.setValue(imageString, new Firebase.CompletionListener() {
+            @Override
+            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                if(firebaseError != null) {
+                    Toast.makeText(getApplicationContext(), "There was a problem uploading the photo =/", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
         // Get User UID
         SharedPreferences prefs = getSharedPreferences("drop", MODE_PRIVATE);
         String UID = prefs.getString("uid", null); // User UID
 
         // Upload to database
         Map<String, Object> drop = new HashMap<String, Object>();
-        drop.put("image", imageString);
+        drop.put("epoch", System.currentTimeMillis());
+        drop.put("imageKey", newImage.getKey());
         drop.put("lat", currentLocation.getLatitude());
         drop.put("lon", currentLocation.getLongitude());
         drop.put("public", public_switch.isChecked());
@@ -183,7 +197,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             @Override
             public void onComplete(FirebaseError firebaseError, Firebase firebase) {
                 if(firebaseError == null) {
-                    Toast.makeText(getApplicationContext(), "Your drop has been dropped!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Your drop has been dropped!", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(getApplicationContext(), "Something went wrong... please try again.", Toast.LENGTH_LONG).show();
                 }
@@ -230,6 +244,16 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             public void onProviderDisabled(String provider) {}
         };
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListener);
+        // If no GPS link after 5 seconds then switch providers.
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(currentLocation == null) {
+                    mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
+                }
+            }
+        }, 5000);
 
         // Init map
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
@@ -271,6 +295,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             return; // Bail is the drops should not be on the map based on the switch current state.
         }
 
+        spinner.setVisibility(View.VISIBLE);
         // Get the username of the drop for now, will probably get image and other data later
         firebase.child("users").child(drop.getDropperUID()).child("username").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -289,11 +314,19 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                         .icon(BitmapDescriptorFactory.fromResource(marker_resource)));
             }
             @Override
-            public void onCancelled(FirebaseError firebaseError) {}
+            public void onCancelled(FirebaseError firebaseError) {
+                spinner.setVisibility(View.GONE);
+            }
         });
     }
 
     private void zoomMapToLocation(Location location) {
+        if(location == null) {
+            // Switch providers
+            mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
+            return;
+        }
+
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(location.getLatitude(), location.getLongitude()), 13));
         // TODO play with other camera positions?
@@ -402,7 +435,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         photo.startAnimation(animation);
 
         // Upload image to database in background
-        Toast.makeText(getApplicationContext(), "Droping...", Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), "Droping...", Toast.LENGTH_SHORT).show();
         new Thread(new Runnable() {
             public void run() {
                 uploadDrop();
