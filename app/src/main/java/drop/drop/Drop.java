@@ -11,6 +11,7 @@ public class Drop {
     private String key = "";
     private String text = "";
     private boolean postIsPublic = false;
+    private String dropperUID = "";
 
     public Drop() {}
 
@@ -35,6 +36,7 @@ public class Drop {
         this.text = text;
     }
     public void setKey(String key) { this.key = key;}
+    public void setDropperUID(String dropperUID) { this.dropperUID = dropperUID; }
 
     public boolean getPostIsPublic() { return postIsPublic; }
     public String getImage() {
@@ -53,4 +55,5 @@ public class Drop {
         return text;
     }
     public String getKey() { return key; }
+    public String getDropperUID() { return dropperUID;}
 }

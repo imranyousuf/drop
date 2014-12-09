@@ -100,7 +100,6 @@
         android:id="@+id/public_switch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="switchPressed"
         android:thumbTextPadding="20dp"
         android:padding="10dp"
         android:textOff=""
@@ -133,5 +132,15 @@
         android:layout_alignParentEnd="true"
         android:layout_above="@id/map"
         android:onClick="switchCamerasPressed"/>
+
+    <ProgressBar
+        android:id="@+id/spinner"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:padding="10dp"/>
 
 </RelativeLayout>
