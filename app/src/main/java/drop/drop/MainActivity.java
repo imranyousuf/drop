@@ -15,6 +15,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.view.GestureDetectorCompat;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -22,12 +23,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
-<<<<<<< HEAD
 import android.widget.ImageButton;
-=======
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
->>>>>>> b9f0bb8098d41656a5c6cd04d8a58dad252d9e86
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
