@@ -41,44 +41,25 @@
 
     <RelativeLayout
         android:id="@+id/top_bar"
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true">
+        style="@style/TopBar">
 
         <ImageButton
             android:id="@+id/friends_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@null"
             android:src="@drawable/friends_icon"
-            android:padding="10dp"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
+            style="@style/TobBarImageButtons"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"/>
+            android:layout_alignParentStart="true"
+            android:onClick="launchFriendsActivity"/>
 
         <ImageView
             android:id="@+id/logo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:layout_margin="10dp"
+            style="@style/TobBarLogo"
             android:src="@drawable/drop_logo" />
 
         <ImageButton
             android:id="@+id/drops_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@null"
             android:src="@drawable/collected_drops_icon"
-            android:padding="10dp"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
+            style="@style/TobBarImageButtons"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"/>
 
@@ -116,7 +97,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/toggle_public"
         android:layout_centerHorizontal="true"
-        android:layout_margin="10dp"
+        android:layout_margin="10dp"/
         android:layout_above="@id/map"/>
         -->
 

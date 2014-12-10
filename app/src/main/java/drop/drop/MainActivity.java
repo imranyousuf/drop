@@ -15,6 +15,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.view.GestureDetectorCompat;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -23,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.widget.ImageButton;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.CompoundButton;
@@ -32,6 +34,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.Toast;
+import android.os.Handler;
 
 import com.firebase.client.AuthData;
 import com.firebase.client.ChildEventListener;
@@ -69,6 +72,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     LocationListener mLocationListener;
     Location currentLocation;
     ImageView photo;
+    ImageButton friends;
+    GestureDetectorCompat gDetect;
     boolean photoBeingPreviewed = false;
     boolean usingFrontFacingCamera = false;
     Switch public_switch;
@@ -136,7 +141,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         runAuthenticationListener();
 
         runDropListener();
-        runCollectedDropListener();
     }
 
     private void runAuthenticationListener() {
@@ -316,6 +320,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 checkForFoundDrop(currentLocation); //TODO implement this
 
                 // TODO Gunna want to move this somewhere else... Dont want to call every time
+
+                // make a call to handleNotification()
                 //toq.sendNotification(getApplicationContext());
             }
             public void onStatusChanged(String provider, int status, Bundle extras) {}
@@ -699,6 +705,14 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         }
         return optimalSize;
+    }
+
+    // Launch Friends activity
+    public void launchFriendsActivity(View view) {
+        friends = (ImageButton) findViewById(R.id.friends_button);
+
+        Intent intent = new Intent(this, Friends.class);
+        startActivity(intent);
     }
 
 }

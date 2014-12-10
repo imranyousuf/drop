@@ -1,0 +1,43 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="drop.drop.AddFriends"
+    android:id="@+id/add_friends_layout" >
+
+    <RelativeLayout
+        android:id="@+id/add_friends_top_bar"
+        style="@style/TopBar"
+        android:background="@color/blue_accent">
+
+        <ImageButton
+            android:id="@+id/friends_back_arrow"
+            android:src="@drawable/back_arrow"
+            style="@style/TobBarImageButtons"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:onClick="closeActivity"/>
+
+        <ImageView
+            android:id="@+id/friends_logo"
+            style="@style/TobBarLogo"
+            android:src="@drawable/drop_logo" />
+
+        <ImageButton
+            android:id="@+id/add_friends_search_button"
+            android:src="@drawable/search_icon"
+            style="@style/TobBarImageButtons"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
+
+    </RelativeLayout>
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+
+    </ListView>
+
+</RelativeLayout>
