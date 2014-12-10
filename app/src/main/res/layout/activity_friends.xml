@@ -5,6 +5,18 @@
     tools:context="drop.drop.Friends"
     android:id="@+id/friends_layout">
 
+    <!-- ListView with ArrayAdapter. Padding is hacky
+         This should probably just be a linear layout -->
+    <ListView
+        android:id="@+id/friends_listview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:paddingTop="50dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
     <RelativeLayout
         android:id="@+id/friends_top_bar"
         style="@style/TopBar"
