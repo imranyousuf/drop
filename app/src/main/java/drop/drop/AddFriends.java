@@ -102,6 +102,8 @@ public class AddFriends extends Activity {
                 String number = (String) user.get("number");
                 String profile_picture = (String) user.get("profile_picture");
                 String username = (String) user.get("username");
+
+
             }
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {}

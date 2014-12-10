@@ -5,7 +5,6 @@
     tools:context="drop.drop.Friends"
     android:id="@+id/friends_layout">
 
-
     <RelativeLayout
         android:id="@+id/friends_top_bar"
         style="@style/TopBar"
@@ -33,6 +32,5 @@
             android:onClick="startAddFriendsActivity"/>
 
     </RelativeLayout>
-
 
 </RelativeLayout>

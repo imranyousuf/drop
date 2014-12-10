@@ -97,7 +97,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/toggle_public"
         android:layout_centerHorizontal="true"
-        android:layout_margin="10dp"
+        android:layout_margin="10dp"/
         android:layout_above="@id/map"/>
         -->
 
