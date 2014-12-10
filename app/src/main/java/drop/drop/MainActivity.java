@@ -15,6 +15,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -31,7 +32,6 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.Toast;
-import android.os.Handler;
 
 import com.firebase.client.AuthData;
 import com.firebase.client.ChildEventListener;
@@ -73,6 +73,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     boolean usingFrontFacingCamera = false;
     Switch public_switch;
     ArrayList<Drop> drops; // Holds all the drops
+    ArrayList<Drop> collectedDrops; // Holds all the collected
     ProgressBar spinner;
 
     @Override
@@ -83,6 +84,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         setContentView(R.layout.activity_main);
 
         drops = new ArrayList<Drop>();
+        collectedDrops = new ArrayList<Drop>();
         spinner = (ProgressBar) findViewById(R.id.spinner);
         spinner.animate();
         spinner.setVisibility(View.GONE);
@@ -101,6 +103,24 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         }
     }
 
+    private boolean isDropCollected(Drop dropUnderTest) {
+        for (Drop drop : collectedDrops) {
+            if(drop.getKey().equals(dropUnderTest.getKey())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isDropInDrops(Drop dropUnderTest) {
+        for (Drop drop : drops) {
+            if(drop.getKey().equals(dropUnderTest.getKey())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     //*********************************************************************************************
     //  FIREBASE
     //*********************************************************************************************
@@ -109,6 +129,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         firebase = new Firebase("https://dropdatabase.firebaseio.com");
         runAuthenticationListener();
         runDropListener();
+        runCollectedDropListener();
     }
 
     private void runAuthenticationListener() {
@@ -141,10 +162,39 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 dropObj.setLon((Double)drop.get("lon"));
                 dropObj.setPublic(((Boolean)drop.get("public")).booleanValue());
                 dropObj.setDropperUID((String)drop.get("dropperUID"));
-                if(!drops.contains(dropObj)) {
+                if(!isDropInDrops(dropObj)) {
                     drops.add(dropObj);
                     addDropToMap(dropObj);
                 }
+            }
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {}
+        });
+    }
+
+    private void runCollectedDropListener() {
+        // Get User UID
+        SharedPreferences prefs = getSharedPreferences("drop", MODE_PRIVATE);
+        String UID = prefs.getString("uid", null); // User UID
+
+        firebase.child("users").child(UID).child("dropsCollected").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
+                    String keyString = (String) snapshot.getValue();
+                    for(Drop drop : drops) { // Check to see if the drop has been collected before.
+                        if(drop.getKey().equals(keyString)) {
+                            if(!isDropCollected(drop)) {
+                                collectedDrops.add(drop);
+                            }
+                            updateDropsOnMap();
+                        }
+                    }
             }
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
@@ -201,6 +251,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 } else {
                     Toast.makeText(getApplicationContext(), "Something went wrong... please try again.", Toast.LENGTH_LONG).show();
                 }
+
+                updateDropsOnMap();
             }
         });
 
@@ -214,6 +266,27 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 if(firebaseError != null) {
                     Toast.makeText(getApplicationContext(), "Something went wrong... please try again.", Toast.LENGTH_LONG).show();
                 }
+                updateDropsOnMap();
+            }
+        });
+    }
+
+    private void addToCollectedDrops(Drop newDrop) {
+        // Get User UID
+        SharedPreferences prefs = getSharedPreferences("drop", MODE_PRIVATE);
+        String UID = prefs.getString("uid", null); // User UID
+
+        // Add key to user profile of drops
+        String dropKey = newDrop.getKey(); // Drop Key
+        Firebase userDrops = firebase.child("users").child(UID).child("dropsCollected");
+        Firebase newUserDrop = userDrops.push(); // Keys dont matter for these
+        newUserDrop.setValue(dropKey, new Firebase.CompletionListener() {
+            @Override
+            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                if(firebaseError != null) {
+                    Toast.makeText(getApplicationContext(), "Something went wrong... please try again.", Toast.LENGTH_LONG).show();
+                }
+                updateDropsOnMap();
             }
         });
     }
@@ -233,8 +306,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     zoomMapToLocation(location);
                 }
                 currentLocation = location;
-                //checkForFoundDrop(currentLocation); TODO implement this
-                // if current location is within proximity of drop in database sendNotification
+                checkForFoundDrop(currentLocation); //TODO implement this
 
                 // TODO Gunna want to move this somewhere else... Dont want to call every time
                 //toq.sendNotification(getApplicationContext());
@@ -283,6 +355,32 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     }
 
+    // Called every time the location of user changes.
+    Drop previouslyFound;
+    public void checkForFoundDrop(Location userLocation) {
+        for (Drop drop : drops) {
+            Location dropLocation = new Location("");
+            dropLocation.setLatitude(drop.getLat());
+            dropLocation.setLongitude(drop.getLon());
+            double distanceInMeters =  userLocation.distanceTo(dropLocation);
+            // Make sure the drop meets criteria to be picked up
+            if((distanceInMeters < TRIGGER_RADIUS) &&   // Its in range
+                    (public_switch.isChecked() == drop.getPostIsPublic()) && //Its the correct mode
+                    (!isDropCollected(drop)) ){ // It has no not been collected before
+                //pushDropFoundNotification(drop);
+                Toast.makeText(getApplicationContext(), "You found a drop!", Toast.LENGTH_LONG).show();
+
+                // TODO notification for drops.
+
+                addToCollectedDrops(drop);
+                if(!isDropCollected(drop)) {
+                    collectedDrops.add(drop);
+                    updateDropsOnMap();
+                }
+            }
+        }
+    }
+
     private void updateDropsOnMap() {
         map.clear();
         for (Drop drop : drops) {
@@ -291,7 +389,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     }
 
     private void addDropToMap(final Drop drop) {
-        if( (drop.getPostIsPublic() != public_switch.isChecked()) ) {
+        if( (drop.getPostIsPublic() != public_switch.isChecked()) ||
+                isDropCollected(drop)) {
             return; // Bail is the drops should not be on the map based on the switch current state.
         }
 
@@ -337,6 +436,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 .tilt(40)                   // Sets the tilt of the camera to 30 degrees
                 .build();                   // Creates a CameraPosition from the builder
         map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+        updateDropsOnMap();
     }
 
     //*********************************************************************************************
@@ -379,6 +479,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             public void onTap() {
                 //Toast.makeText(getApplicationContext(), "tap", Toast.LENGTH_LONG).show();
                 if(!photoBeingPreviewed) {
+                    mCamera.autoFocus(null);
                     takePicture();
                 }
             }
@@ -530,7 +631,14 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             mCamera.stopPreview();
         }
         Camera.Parameters parameters = mCamera.getParameters();
+        List<String> focusModes = parameters.getSupportedFocusModes();
+        if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE))
+        {
+            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+        }
         List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
+        List<Camera.Size> photoSizes = parameters.getSupportedPictureSizes();
+        previewSizes.retainAll(photoSizes);
         Camera.Size previewSize = getOptimalPreviewSize(previewSizes, mSurfaceView.getWidth(), mSurfaceView.getHeight());
         parameters.setPreviewSize(previewSize.width, previewSize.height);
         parameters.setPictureSize(previewSize.width, previewSize.height);
@@ -544,6 +652,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             e.printStackTrace();
         }
         mCamera.startPreview();
+        mCamera.autoFocus(null);
         mPreviewRunning = true;
     }
 
