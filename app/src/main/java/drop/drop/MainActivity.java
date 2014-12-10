@@ -91,7 +91,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         runFirebase();
         runCamera();
-        runMap();
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                runMap();
+            }
+        }, 3000);
     }
 
     @Override
@@ -128,6 +134,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         Firebase.setAndroidContext(this);
         firebase = new Firebase("https://dropdatabase.firebaseio.com");
         runAuthenticationListener();
+
         runDropListener();
         runCollectedDropListener();
     }
@@ -632,8 +639,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         }
         Camera.Parameters parameters = mCamera.getParameters();
         List<String> focusModes = parameters.getSupportedFocusModes();
-        if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE))
-        {
+        if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)){
             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
         }
         List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
