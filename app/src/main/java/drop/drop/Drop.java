@@ -65,4 +65,5 @@ public class Drop {
     public String getDropperUID() { return dropperUID;}
     public String getImageKey() { return imageKey;}
     public long getEpoch() { return epoch;}
+
 }

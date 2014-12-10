@@ -6,6 +6,7 @@ import android.content.ContentResolver;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.View;
 
 
@@ -13,10 +14,12 @@ import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.firebase.client.core.SyncTree;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 
 
@@ -26,7 +29,7 @@ public class AddFriends extends Activity {
     HashSet<String> contactList;
     String formattedPhoneNo;
     final String DELIMITERS = "\\+|\\(|\\)|-|\\s";
-
+    ArrayList<Map<String, Object>> userList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +37,8 @@ public class AddFriends extends Activity {
         ActionBar actionBar = getActionBar();
         actionBar.hide();
         setContentView(R.layout.activity_add_friends);
+
+        userList = new ArrayList<Map<String, Object>>();
 
         initFirebase();
         getUserContacts();
@@ -94,26 +99,21 @@ public class AddFriends extends Activity {
 
     private void initFirebase() {
         firebase = new Firebase("https://dropdatabase.firebaseio.com");
-        firebase.child("users").addChildEventListener(new ChildEventListener() {
+        firebase.child("users").addValueEventListener(new ValueEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
-
-                Map<String, Object> user = (Map<String, Object>) snapshot.getValue();
-                String number = (String) user.get("number");
-                String profile_picture = (String) user.get("profile_picture");
-                String username = (String) user.get("username");
-
-
+            public void onDataChange(DataSnapshot snapshot) {
+                Object value = snapshot.getValue();
+                Map<String, Object> users = (Map<String, Object>) snapshot.getValue();
+                for(Object user : users.values()) {
+                    Map<String, Object> userMap = (Map<String, Object>) user; // save this
+                    if(!userList.contains(userMap)) {
+                        userList.add(userMap);
+                    }
+                }
             }
             @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {}
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {}
+            public void onCancelled(FirebaseError firebaseError) {
+            }
         });
     }
-
 }
