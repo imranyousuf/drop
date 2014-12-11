@@ -13,8 +13,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
+
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
 
 /**
  * Created by Short on 12/8/2014.
@@ -24,7 +30,8 @@ public class Friends extends Activity {
     // Array of Options --> ArrayAdapter --> ListView
     // ListView: {views : friends_view.xml}
 
-    private List<UserInfo> userInfoList = new ArrayList<UserInfo>();
+    private Firebase firebase;
+    private ArrayList<UserInfo> userInfoList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,14 +42,36 @@ public class Friends extends Activity {
         setContentView(R.layout.activity_friends);
 
         populateUserInfoList();
-        populateFriendsListView();
-        registerClickCallBack();
     }
 
     private void populateUserInfoList() {
-        // Create list of items
-        userInfoList.add(new UserInfo("8312101515", "Corey Short",  R.drawable.friend_drop_message));
-        userInfoList.add(new UserInfo("1234561212", "Kyle Dillon", R.drawable.public_drop_message));
+        // Create list of items to be stored in our ListView from the database
+        // This is really slow right now :(
+        userInfoList = new ArrayList<UserInfo>();
+        firebase = new Firebase("https://dropdatabase.firebaseio.com");
+        firebase.child("users").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                HashMap<String, Object> users = (HashMap<String, Object>) snapshot.getValue();
+                for (Object user : users.values()) {
+                    HashMap<String, Object> userMap = (HashMap<String, Object>) user;
+                    String userNumber = (String) userMap.get("number");
+                    if (!userInfoList.contains(userNumber)) {
+                        String name = (String) userMap.remove("username");
+                        String pic = (String) userMap.remove("profile_picture");
+                        UserInfo info = new UserInfo(userNumber, name, pic);
+                        userInfoList.add(info);
+                    }
+                }
+                Collections.addAll(userInfoList);
+                populateFriendsListView();
+            }
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                String message = "Server error. Refresh page";
+                Toast.makeText(Friends.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void populateFriendsListView() {
@@ -52,6 +81,9 @@ public class Friends extends Activity {
         // Configure the list view
         ListView listView = (ListView) findViewById(R.id.friends_listview);
         listView.setAdapter(adapter);
+
+        // Not important for Friends, but it will be for adding friends which basically mimics this implementation
+        registerClickCallBack();
     }
 
     private class MyListAdapter extends ArrayAdapter<UserInfo> {
@@ -77,12 +109,13 @@ public class Friends extends Activity {
                 friendsView = getLayoutInflater().inflate(R.layout.friends_view, parent, false);
             }
 
-            // Find the user to work with
+            // Find the user to work with for list view population
             UserInfo curUserInfo = userInfoList.get(position);
 
             // Find the user's profile picture and set it in the ImageView
             ImageView imageView = (ImageView) friendsView.findViewById(R.id.user_profile_picture);
-            imageView.setImageResource(curUserInfo.getPicture());
+            imageView.setImageBitmap(curUserInfo.getPicture());
+            //imageView.setImageResource(curUserInfo.getPicture());
 
             // Find the user's name and set it in the TextView next to the user's profile picture
             TextView makeText = (TextView) friendsView.findViewById(R.id.user_name);
