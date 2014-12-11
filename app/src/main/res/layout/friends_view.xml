@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="48dp"
+    android:layout_height="wrap_content"
     android:paddingLeft="16dp"
     android:paddingRight="16dp">
 
     <!-- A custom view passed into Friends.java for displaying friends -->
     <ImageView
         android:id="@+id/user_profile_picture"
+        android:scaleType="centerCrop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"

@@ -5,13 +5,23 @@
     tools:context="drop.drop.AddFriends"
     android:id="@+id/add_friends_layout" >
 
+    <ListView
+        android:id="@+id/add_friends_listview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:paddingTop="50dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
     <RelativeLayout
         android:id="@+id/add_friends_top_bar"
         style="@style/TopBar"
         android:background="@color/blue_accent">
 
         <ImageButton
-            android:id="@+id/friends_back_arrow"
+            android:id="@+id/add_friends_back_arrow"
             android:src="@drawable/back_arrow"
             style="@style/TobBarImageButtons"
             android:layout_alignParentLeft="true"
@@ -31,13 +41,5 @@
             android:layout_alignParentEnd="true" />
 
     </RelativeLayout>
-
-    <ListView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-
-
-    </ListView>
 
 </RelativeLayout>
