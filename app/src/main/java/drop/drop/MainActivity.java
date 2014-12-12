@@ -86,6 +86,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     ArrayList<Drop> notifiedDrops; // Holds all the drops that have triggered a notification
     ProgressBar spinner;
     boolean activityInBackground = false;
+    ToqActivity toq = new ToqActivity();
+    String abc;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +112,12 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         runCamera();
 
+        install_app();
+
         runMap();
+
+
+
     }
 
     @Override
@@ -120,6 +129,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         }
     }
 
+    private void install_app() {
+        Intent intent = new Intent(getApplicationContext(), ToqActivity.class);
+        startActivity(intent);
+    }
     @Override
     protected void onRestart() {
         super.onRestart();
@@ -200,6 +213,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         Random r = new Random();
         int id = r.nextInt(1000 - 0) + 0; // make random id for notif
         resultIntent.putExtra("id", Integer.toString(id));
+        //toq1.sendNotification(this);
 
         // The stack builder object will contain an artificial back stack for the
         // started Activity.
@@ -230,7 +244,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         Firebase.setAndroidContext(this);
         firebase = new Firebase("https://dropdatabase.firebaseio.com");
         runAuthenticationListener();
+
         runDropListener();
+
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
