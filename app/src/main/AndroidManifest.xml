@@ -60,11 +60,13 @@
         <activity
             android:name=".Login"
             android:label="@string/title_activity_login"
-            android:noHistory="true" >
+            android:noHistory="true"
+            android:screenOrientation="portrait">
         </activity>
         <activity
             android:name=".Friends"
             android:label="@string/title_activity_friends"
+            android:screenOrientation="portrait"
             android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -73,14 +75,16 @@
         <activity
             android:name=".AddFriends"
             android:label="@string/title_activity_add_friends"
+            android:screenOrientation="portrait"
             android:parentActivityName=".Friends" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="drop.drop.Friends" />
+                android:value=".Friends" />
         </activity>
         <activity
             android:name=".ToqActivity"
             android:label="@string/title_activity_toq"
+            android:screenOrientation="portrait"
             android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -89,10 +93,11 @@
         <activity
             android:name=".Toq"
             android:label="@string/title_activity_toq"
+            android:screenOrientation="portrait"
             android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="drop.drop.MainActivity" />
+                android:value=".MainActivity" />
         </activity>
     </application>
 

@@ -5,13 +5,24 @@
     tools:context="drop.drop.AddFriends"
     android:id="@+id/add_friends_layout" >
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/pink_accent"
+        android:text="Friends who added me on Drop"
+        android:paddingTop="50dp"
+        android:layout_margin="5dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_alignParentTop="true" />
+
     <ListView
         android:id="@+id/add_friends_listview"
         android:dividerHeight="1dp"
         android:divider="@color/blue_accent"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:paddingTop="50dp"
+        android:paddingTop="70dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
