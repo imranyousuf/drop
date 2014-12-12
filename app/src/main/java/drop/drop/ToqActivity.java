@@ -94,6 +94,7 @@ public class ToqActivity extends Activity {
         //getApplicationContext();
         setContentView(R.layout.activity_main);
         mDeckOfCardsManager = DeckOfCardsManager.getInstance(getApplicationContext());
+
         toqReceiver = new ToqBroadcastReceiver();
         init();
         setupUI();
@@ -216,10 +217,10 @@ public class ToqActivity extends Activity {
         // Try to retrieve a stored deck of cards
         try {
             // If there is no stored deck of cards or it is unusable, then create new and store
-            /**  if ((mRemoteDeckOfCards = getStoredDeckOfCards()) == null){
-             mRemoteDeckOfCards = createDeckOfCards();
-             storeDeckOfCards();
-             }**/
+            if ((mRemoteDeckOfCards = getStoredDeckOfCards()) == null){
+                mRemoteDeckOfCards = createDeckOfCards();
+                storeDeckOfCards();
+            }
         } catch (Throwable th) {
             th.printStackTrace();
             mRemoteDeckOfCards = null; // Reset to force recreate
@@ -228,6 +229,13 @@ public class ToqActivity extends Activity {
         // Make sure in usable state
         if (mRemoteDeckOfCards == null) {
             mRemoteDeckOfCards = createDeckOfCards();
+        }
+
+        try {
+            mDeckOfCardsManager.updateDeckOfCards(mRemoteDeckOfCards);
+        } catch (RemoteDeckOfCardsException e) {
+            e.printStackTrace();
+            //Toast.makeText(this, "Failed to Create SimpleTextCard", Toast.LENGTH_SHORT).show();
         }
 
             // Set the custom launcher icons, adding them to the resource store
@@ -379,7 +387,6 @@ public class ToqActivity extends Activity {
 
         fsmCardImages = new HashMap<String, String>();
         Log.v("RR", "init function!");
-
         fsmCardImages.put("Mario Savio", "Express your view of free speech in a drawing");
         fsmCardImages.put("Joan Baez", "Draw a megaphone");
         fsmCardImages.put("Art Goldberg", "Draw Now");
@@ -636,12 +643,7 @@ public class ToqActivity extends Activity {
         }
 
 
-        try {
-            mDeckOfCardsManager.updateDeckOfCards(mRemoteDeckOfCards,mRemoteResourceStore);
-        } catch (RemoteDeckOfCardsException e) {
-            e.printStackTrace();
-            //Toast.makeText(this, "Failed to Create SimpleTextCard", Toast.LENGTH_SHORT).show();
-        }
+
         return new RemoteDeckOfCards(this, listCard);
 
     }
