@@ -133,7 +133,7 @@ public class Friends extends Activity {
             public void onItemClick(AdapterView<?> parent, View viewClicked, int position, long id) {
 
                 UserInfo friendRequest = userInfoList.get(position);
-                String message = "You clicked position: " + position + " which is user: " + friendRequest.getName();
+                String message = friendRequest.getName() + " is your friend";
                 Toast.makeText(Friends.this, message, Toast.LENGTH_SHORT).show();
             }
         });
