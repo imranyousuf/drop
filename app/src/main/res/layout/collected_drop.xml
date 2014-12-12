@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/collected_drop_top"
+            android:layout_margin="10dp">
+
+            <drop.drop.RoundImageView
+                android:id="@+id/collected_profile_photo"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="centerCrop"
+                android:layout_marginRight="10dp"/>
+
+            <TextView
+                android:id="@+id/collected_text"
+                android:layout_width="fill_parent"
+                android:layout_height="50dp"
+                android:textSize="20sp"
+                android:fontFamily="sans-serif-thin"
+                android:gravity="center_vertical"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="1"
+                android:text=""/>
+
+            <TextView
+                android:id="@+id/collected_date"
+                android:layout_width="fill_parent"
+                android:layout_height="50dp"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-thin"
+                android:gravity="end|center_vertical"
+                android:layout_gravity="center_vertical"
+                android:text=""
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
+            <drop.drop.SquareImageView
+                android:id="@+id/collected_photo"
+                android:layout_width="fill_parent"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                android:layout_below="@id/collected_drop_top"/>
+
+            <ProgressBar
+                android:id="@+id/collected_spinner"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_alignTop="@+id/collected_photo"
+                android:layout_alignBottom="@+id/collected_photo"/>
+        </RelativeLayout>
+    </TableRow>
+</TableLayout>

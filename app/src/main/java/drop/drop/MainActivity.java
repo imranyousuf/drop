@@ -167,6 +167,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private void checkNotification() {
         final Bundle extras = getIntent().getExtras();
         if(extras != null) {
+            if(extras.getString("dropKey") == null || extras.getString("id") == null ) return;
+
             Toast.makeText(getApplicationContext(), "Picking up your drop...", Toast.LENGTH_SHORT).show();
             final String dropKey = extras.getString("dropKey");
 
@@ -216,6 +218,11 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         mNotificationManager.notify(id, mBuilder.build()); // use index to remember
     }
 
+    public void collectedDropsPressed(View view) {
+        Intent intent = new Intent(this, CollectedDrops.class);
+        startActivity(intent);
+    }
+
     //*********************************************************************************************
     //  FIREBASE
     //*********************************************************************************************
@@ -245,6 +252,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     editor.commit();
                 } else { // User is not logged in
                     loggedIn = false;
+                    launchLogin();
                 }
             }
         });
@@ -286,6 +294,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         // Get User UID
         SharedPreferences prefs = getSharedPreferences("drop", MODE_PRIVATE);
         String UID = prefs.getString("uid", null); // User UID
+
+        if(UID == null) return;
+
         firebase.child("users").child(UID).child("dropsCollected").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot snapshot, String previousChildKey) {
@@ -481,9 +492,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 checkForFoundDrop(currentLocation); //TODO implement this
 
                 // TODO Gunna want to move this somewhere else... Dont want to call every time
-
-                // make a call to handleNotification()
-                //toq.sendNotification(getApplicationContext());
             }
             public void onStatusChanged(String provider, int status, Bundle extras) {}
             public void onProviderEnabled(String provider) {}

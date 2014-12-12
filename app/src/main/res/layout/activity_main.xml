@@ -61,7 +61,8 @@
             android:src="@drawable/collected_drops_icon"
             style="@style/TobBarImageButtons"
             android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"/>
+            android:layout_alignParentEnd="true"
+            android:onClick="collectedDropsPressed"/>
 
     </RelativeLayout>
 

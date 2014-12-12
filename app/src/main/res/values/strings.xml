@@ -12,5 +12,7 @@
     <string name="title_activity_login">Login</string>
     <string name="title_activity_friends">Friends</string>
     <string name="title_activity_add_friends">AddFriends</string>
+    <string name="title_activity_collected_drops">CollectedDrops</string>
+    <string name="hello_world">Hello world!</string>
 
 </resources>
