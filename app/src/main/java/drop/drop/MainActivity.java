@@ -20,7 +20,6 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.view.GestureDetectorCompat;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -77,7 +76,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     Location currentLocation;
     ImageView photo;
     ImageButton friends;
-    GestureDetectorCompat gDetect;
     boolean photoBeingPreviewed = false;
     boolean usingFrontFacingCamera = false;
     Switch public_switch;
@@ -87,9 +85,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     ProgressBar spinner;
     boolean activityInBackground = false;
     ToqActivity toq = new ToqActivity();
-    String abc;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,8 +111,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         runMap();
 
-
-
     }
 
     @Override
@@ -130,9 +123,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     }
 
     private void install_app() {
-        Intent intent = new Intent(getApplicationContext(), ToqActivity.class);
+        Intent intent = new Intent(this, ToqActivity.class);
         startActivity(intent);
     }
+
     @Override
     protected void onRestart() {
         super.onRestart();
@@ -296,7 +290,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             public void onCancelled(FirebaseError firebaseError) {}
         });
     }
-
 
     private void runCollectedDropListener() {
         // Get User UID
@@ -601,7 +594,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 spinner.setVisibility(View.GONE);
                 String username = (String) snapshot.getValue();
                 int marker_resource;
-                if(drop.getPostIsPublic() == true) {
+                if(drop.getPostIsPublic()) {
                     marker_resource = R.drawable.public_drop_message;
                 } else {
                     marker_resource = R.drawable.friend_drop_message;
@@ -808,8 +801,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     }
 
     private int getFrontCameraIndex() {
-        int cameraCount = 0;
-        Camera cam = null;
+        int cameraCount;
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
         cameraCount = Camera.getNumberOfCameras();
         int camIdx;
@@ -875,16 +867,14 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         mCamera = null;
     }
 
-    private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
+    private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int targetHeight) {
         final double ASPECT_TOLERANCE = 0.1;
-        double targetRatio=(double)h / w;
+        double targetRatio = (double) targetHeight / w;
 
         if (sizes == null) return null;
 
         Camera.Size optimalSize = null;
         double minDiff = Double.MAX_VALUE;
-
-        int targetHeight = h;
 
         for (Camera.Size size : sizes) {
             double ratio = (double) size.width / size.height;
