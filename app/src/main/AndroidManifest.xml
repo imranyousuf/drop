@@ -66,8 +66,7 @@
         <activity
             android:name=".Friends"
             android:label="@string/title_activity_friends"
-            android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait">
+            android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="drop.drop.MainActivity" />
@@ -75,11 +74,10 @@
         <activity
             android:name=".AddFriends"
             android:label="@string/title_activity_add_friends"
-            android:parentActivityName=".Friends"
-            android:screenOrientation="portrait">
+            android:parentActivityName=".Friends" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="drop.drop.Friends" />
+                android:value=".Friends" />
         </activity>
         <activity
             android:name=".CollectedDrops"
@@ -88,11 +86,19 @@
 
         <activity
             android:label="@string/title_activity_toq"
-            android:parentActivityName=".MainActivity"
-            android:name=".ToqActivity" >
+            android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity"/>
+                android:value=".MainActivity" />
+        </activity>
+        <activity
+            android:name=".Toq"
+            android:label="@string/title_activity_toq"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
         </activity>
 
         <receiver

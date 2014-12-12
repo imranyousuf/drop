@@ -21,13 +21,13 @@
     <string name="error_checking_status">Error checking if Toq watch is connected or deck of cards is installed</string>
     <string name="notification_panel">Notification</string>
     <string name="doc_panel">Deck Of Cards</string>
-
-    <string name="status_connecting">Connecting&#8230;</string>
+    <string name="status_connecting">Connecting…</string>
     <string name="status_disconnected">Disconnected from Toq app service</string>
     <string name="status_installation_successful">Check images of FSM leaders on your watch!</string>
     <string name="status_installation_denied">Application not installed</string>
     <string name="status_connected">Connected to Toq app service</string>
     <string name="status_uninstalled">Application uninstalled</string>
     <string name="error_connecting_to_service">Error connecting to Toq app service</string>
+    <string name="hello_world">Hello world!</string>
 
 </resources>

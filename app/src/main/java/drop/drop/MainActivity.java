@@ -21,7 +21,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.view.GestureDetectorCompat;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -53,22 +52,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.Constants;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.DeckOfCardsEventListener;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.ListCard;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.NotificationTextCard;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.SimpleTextCard;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.DeckOfCardsManager;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.RemoteDeckOfCards;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.RemoteDeckOfCardsException;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.RemoteResourceStore;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.RemoteToqNotification;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.resource.CardImage;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.resource.DeckOfCardsLauncherIcon;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.util.ParcelableUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -104,8 +89,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, De
     ArrayList<Drop> notifiedDrops; // Holds all the drops that have triggered a notification
     ProgressBar spinner;
     boolean activityInBackground = false;
-    ToqActivity toq = new ToqActivity();
-    String abc;
 
 
     private DeckOfCardsManager mDeckOfCardsManager;
@@ -146,7 +129,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, De
     protected void onResume() {
         super.onResume();
 
-        if(loggedIn == false) {
+        if(!loggedIn) {
             launchLogin();
         }
     }
@@ -217,7 +200,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, De
     private void pushDropFoundNotification(Drop drop) { // Push a notification to the user notifying them of the drop they found
         launchWatchNotificationForDrop(drop);
         int marker_resource;
-        if(drop.getPostIsPublic() == true) {
+        if(drop.getPostIsPublic()) {
             marker_resource = R.drawable.public_drop_message;
         } else {
             marker_resource = R.drawable.friend_drop_message;
@@ -528,6 +511,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, De
                 checkForFoundDrop(currentLocation); //TODO implement this
 
                 // TODO Gunna want to move this somewhere else... Dont want to call every time
+
+                // make a call to handleNotification()
+                //toq.sendNotification(getApplicationContext());
             }
             public void onStatusChanged(String provider, int status, Bundle extras) {}
             public void onProviderEnabled(String provider) {}
@@ -585,7 +571,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, De
     }
 
     // Called every time the location of user changes.
-    Drop previouslyFound;
+    //Drop previouslyFound;
     public void checkForFoundDrop(Location userLocation) {
         for (Drop drop : drops) {
             Location dropLocation = new Location("");
@@ -629,7 +615,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, De
                 spinner.setVisibility(View.GONE);
                 String username = (String) snapshot.getValue();
                 int marker_resource;
-                if(drop.getPostIsPublic() == true) {
+                if(drop.getPostIsPublic()) {
                     marker_resource = R.drawable.public_drop_message;
                 } else {
                     marker_resource = R.drawable.friend_drop_message;
@@ -836,8 +822,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, De
     }
 
     private int getFrontCameraIndex() {
-        int cameraCount = 0;
-        Camera cam = null;
+        int cameraCount;
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
         cameraCount = Camera.getNumberOfCameras();
         int camIdx;
