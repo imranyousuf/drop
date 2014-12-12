@@ -15,7 +15,6 @@
     <string name="title_activity_friends">Friends</string>
     <string name="title_activity_add_friends">AddFriends</string>
     <string name="title_activity_collected_drops">CollectedDrops</string>
-    <string name="hello_world">Hello world!</string>
     <string name="intent_toq_watch_connected">Toq watch is connected to Toq app</string>
     <string name="intent_toq_watch_disconnected">Toq watch is disconnected from Toq app</string>
     <string name="error_checking_status">Error checking if Toq watch is connected or deck of cards is installed</string>

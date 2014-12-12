@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.view.GestureDetectorCompat;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -52,6 +53,19 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.Constants;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.DeckOfCardsEventListener;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.ListCard;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.NotificationTextCard;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.SimpleTextCard;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.DeckOfCardsManager;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.RemoteDeckOfCards;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.RemoteDeckOfCardsException;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.RemoteResourceStore;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.RemoteToqNotification;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.resource.CardImage;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.resource.DeckOfCardsLauncherIcon;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.util.ParcelableUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,6 +73,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import java.io.InputStream;
 
 public class MainActivity extends Activity implements SurfaceHolder.Callback, DeckOfCardsEventListener {
 
@@ -950,8 +966,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback, De
 
         // Get the launcher icons
         try{
-            whiteIcon= new DeckOfCardsLauncherIcon("white.launcher.icon", getBitmap("speech_bubble.png"), DeckOfCardsLauncherIcon.WHITE);
-            colorIcon= new DeckOfCardsLauncherIcon("color.launcher.icon", getBitmap("speech_bubble.png"), DeckOfCardsLauncherIcon.COLOR);
+            whiteIcon= new DeckOfCardsLauncherIcon("white.launcher.icon", getBitmap("drop_logo_launcher.png"), DeckOfCardsLauncherIcon.WHITE);
+            colorIcon= new DeckOfCardsLauncherIcon("color.launcher.icon", getBitmap("drop_logo_launcher.png"), DeckOfCardsLauncherIcon.COLOR);
         }
         catch (Exception e){
             e.printStackTrace();

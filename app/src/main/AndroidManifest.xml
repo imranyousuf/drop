@@ -84,22 +84,6 @@
             android:label="@string/title_activity_collected_drops"
             android:screenOrientation="portrait"/>
 
-        <activity
-            android:label="@string/title_activity_toq"
-            android:parentActivityName=".MainActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-        </activity>
-        <activity
-            android:name=".Toq"
-            android:label="@string/title_activity_toq"
-            android:screenOrientation="portrait"
-            android:parentActivityName=".MainActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
-        </activity>
 
         <receiver
             android:name=".ToqBroadcastReceiver"
