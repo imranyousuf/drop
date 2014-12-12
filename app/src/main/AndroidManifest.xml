@@ -82,19 +82,27 @@
                 android:value="drop.drop.Friends" />
         </activity>
         <activity
-<<<<<<< HEAD
             android:name=".CollectedDrops"
             android:label="@string/title_activity_collected_drops"
-            android:screenOrientation="portrait">
-=======
-            android:name=".ToqActivity"
+            android:screenOrientation="portrait"/>
+
+        <activity
             android:label="@string/title_activity_toq"
-            android:parentActivityName=".MainActivity" >
+            android:parentActivityName=".MainActivity"
+            android:name=".ToqActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity"/>
->>>>>>> b34e036ea1124aaa8a3743ae21e39214e5bb2de3
         </activity>
+
+        <receiver
+            android:name=".ToqBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.qualcomm.toq.smartwatch.install.applet" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

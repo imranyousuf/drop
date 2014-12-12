@@ -14,10 +14,8 @@
     <string name="title_activity_login">Login</string>
     <string name="title_activity_friends">Friends</string>
     <string name="title_activity_add_friends">AddFriends</string>
-<<<<<<< HEAD
     <string name="title_activity_collected_drops">CollectedDrops</string>
     <string name="hello_world">Hello world!</string>
-=======
     <string name="intent_toq_watch_connected">Toq watch is connected to Toq app</string>
     <string name="intent_toq_watch_disconnected">Toq watch is disconnected from Toq app</string>
     <string name="error_checking_status">Error checking if Toq watch is connected or deck of cards is installed</string>
@@ -31,7 +29,5 @@
     <string name="status_connected">Connected to Toq app service</string>
     <string name="status_uninstalled">Application uninstalled</string>
     <string name="error_connecting_to_service">Error connecting to Toq app service</string>
-
->>>>>>> b34e036ea1124aaa8a3743ae21e39214e5bb2de3
 
 </resources>

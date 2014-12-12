@@ -6,24 +6,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.lang.Exception;import java.lang.Integer;import java.lang.Override;import java.lang.Runnable;
 
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.Constants;
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.DeckOfCardsEventListener;
-
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.ResourceStoreException;
-import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.Card;
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.ListCard;
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.NotificationTextCard;
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.SimpleTextCard;
@@ -38,11 +32,10 @@ import com.qualcomm.toq.smartwatch.api.v1.deckofcards.resource.DeckOfCardsLaunch
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.util.ParcelableUtil;
 
 import java.io.InputStream;
-import java.lang.String;import java.lang.System;import java.lang.Throwable;import java.util.HashMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import drop.drop.ToqBroadcastReceiver;
 
 
 public class ToqActivity extends Activity {
@@ -399,8 +392,8 @@ public class ToqActivity extends Activity {
 
 
         // Panels
-        notificationPanel= (ViewGroup)findViewById(R.id.notification_panel);
-        deckOfCardsPanel= (ViewGroup)findViewById(R.id.doc_panel);
+        //notificationPanel= (ViewGroup)findViewById(R.id.notification_panel);
+        //deckOfCardsPanel= (ViewGroup)findViewById(R.id.doc_panel);
 
         setChildrenEnabled(deckOfCardsPanel, false);
         setChildrenEnabled(notificationPanel, false);
@@ -416,7 +409,7 @@ public class ToqActivity extends Activity {
 
         // Status
         Log.v("RR", "get status!");
-        statusTextView= (TextView)findViewById(R.id.status_text);
+        //statusTextView= (TextView)findViewById(R.id.status_text);
         statusTextView.setText("Initialised");
 
         registerToqAppStateReceiver();

@@ -8,7 +8,6 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.util.Base64;
-import android.util.SparseBooleanArray;
 
 /**
  * A class to store user information to populate our Friends List

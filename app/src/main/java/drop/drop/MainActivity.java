@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.view.GestureDetectorCompat;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -52,17 +53,34 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.Constants;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.DeckOfCardsEventListener;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.ListCard;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.NotificationTextCard;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.SimpleTextCard;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.DeckOfCardsManager;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.RemoteDeckOfCards;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.RemoteDeckOfCardsException;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.RemoteResourceStore;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.remote.RemoteToqNotification;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.resource.CardImage;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.resource.DeckOfCardsLauncherIcon;
+import com.qualcomm.toq.smartwatch.api.v1.deckofcards.util.ParcelableUtil;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-public class MainActivity extends Activity implements SurfaceHolder.Callback {
+public class MainActivity extends Activity implements SurfaceHolder.Callback, DeckOfCardsEventListener {
 
     double TRIGGER_RADIUS = 25; // Drop pick up trigger radius in meters
+    private final static String PREFS_FILE= "prefs_file";
+    private final static String DECK_OF_CARDS_KEY= "cards_key";
+    private final static String DECK_OF_CARDS_VERSION_KEY= "cards_version_key";
 
     SurfaceView mSurfaceView;
     SurfaceHolder mSurfaceHolder;
@@ -90,6 +108,12 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     String abc;
 
 
+    private DeckOfCardsManager mDeckOfCardsManager;
+    private RemoteDeckOfCards mRemoteDeckOfCards;
+    private RemoteResourceStore mRemoteResourceStore;
+    private CardImage[] mCardImages;
+    private ToqBroadcastReceiver toqReceiver;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,11 +136,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         runCamera();
 
-        install_app();
-
         runMap();
 
-
+        initWatch();
 
     }
 
@@ -129,10 +151,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         }
     }
 
-    private void install_app() {
-        Intent intent = new Intent(getApplicationContext(), ToqActivity.class);
-        startActivity(intent);
-    }
     @Override
     protected void onRestart() {
         super.onRestart();
@@ -141,6 +159,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     @Override
     protected void onStart() {
         super.onStart();
+        connectToWatch();
         activityInBackground = false;
     }
 
@@ -196,6 +215,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     }
 
     private void pushDropFoundNotification(Drop drop) { // Push a notification to the user notifying them of the drop they found
+        launchWatchNotificationForDrop(drop);
         int marker_resource;
         if(drop.getPostIsPublic() == true) {
             marker_resource = R.drawable.public_drop_message;
@@ -921,6 +941,357 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         Intent intent = new Intent(this, Friends.class);
         startActivity(intent);
+    }
+
+    //*********************************************************************************************
+    //  WATCH CONTROL
+    //*********************************************************************************************
+
+    public void installWatch(View view) {
+        install();
+    }
+    // Initialize the watch
+    private void initWatch(){
+        // Get cards object and receiver object
+        mDeckOfCardsManager = DeckOfCardsManager.getInstance(getApplicationContext());
+        mDeckOfCardsManager.addDeckOfCardsEventListener(this);
+        toqReceiver = new ToqBroadcastReceiver();
+
+        // Create the resource store for icons and images
+        mRemoteResourceStore= new RemoteResourceStore();
+
+        DeckOfCardsLauncherIcon whiteIcon = null;
+        DeckOfCardsLauncherIcon colorIcon = null;
+
+        // Get the launcher icons
+        try{
+            whiteIcon= new DeckOfCardsLauncherIcon("white.launcher.icon", getBitmap("speech_bubble.png"), DeckOfCardsLauncherIcon.WHITE);
+            colorIcon= new DeckOfCardsLauncherIcon("color.launcher.icon", getBitmap("speech_bubble.png"), DeckOfCardsLauncherIcon.COLOR);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            System.out.println("Can't get launcher icon");
+        }
+
+        mCardImages = new CardImage[6];
+
+        // Try to retrieve a stored deck of cards
+        try {
+            // If there is no stored deck of cards or it is unusable, then create new and store
+            if ((mRemoteDeckOfCards = getStoredDeckOfCards()) == null){
+                mRemoteDeckOfCards = createDeckOfCards();
+                storeDeckOfCards();
+            }
+        }
+        catch (Throwable th){
+            th.printStackTrace();
+            mRemoteDeckOfCards = null; // Reset to force recreate
+        }
+
+        // Make sure in usable state
+        if (mRemoteDeckOfCards == null){
+            mRemoteDeckOfCards = createDeckOfCards();
+        }
+
+        // Set the custom launcher icons, adding them to the resource store
+        mRemoteDeckOfCards.setLauncherIcons(mRemoteResourceStore, new DeckOfCardsLauncherIcon[]{whiteIcon, colorIcon});
+    }
+
+    private boolean isConnected() {
+        if (mDeckOfCardsManager.isConnected()){
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    private void connectToWatch() {
+        // If not connected, try to connect
+        if (!mDeckOfCardsManager.isConnected()){
+            try{
+                mDeckOfCardsManager.connect();
+            }
+            catch (RemoteDeckOfCardsException e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void showNotificationOnWatch() {
+        String[] message = new String[2];
+        message[0] = "Open it in app.";
+        message[1] = " ";
+        // Create a NotificationTextCard
+        NotificationTextCard notificationCard = new NotificationTextCard(System.currentTimeMillis(),
+                "You found a drop!", message);
+
+        // Draw divider between lines of text
+        notificationCard.setShowDivider(true);
+        // Vibrate to alert user when showing the notification
+        notificationCard.setVibeAlert(true);
+        // Create a notification with the NotificationTextCard we made
+        RemoteToqNotification notification = new RemoteToqNotification(this, notificationCard);
+
+        try {
+            // Send the notification
+            mDeckOfCardsManager.sendNotification(notification);
+            Toast.makeText(this, "Sent Notification", Toast.LENGTH_SHORT).show();
+        } catch (RemoteDeckOfCardsException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed To Send Notification to Watch", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void launchWatchNotificationForDrop(Drop drop) {
+        firebase.child("photos").child(drop.getImageKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                String imageString = (String) snapshot.getValue();
+                showCardWithBitmap(ImageHelper.StringToBitMap(imageString));
+                showNotificationOnWatch();
+            }
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {}
+        });
+    }
+
+    private boolean isInstalled() {
+        boolean isInstalled = false;
+
+        try {
+            isInstalled = mDeckOfCardsManager.isInstalled();
+        }
+        catch (RemoteDeckOfCardsException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error: Can't determine if app is installed", Toast.LENGTH_SHORT).show();
+        }
+
+        return isInstalled;
+    }
+    /**
+     * Installs applet to Toq watch if app is not yet installed
+     */
+    private void install() {
+        boolean isInstalled = false;
+
+        try {
+            isInstalled = mDeckOfCardsManager.isInstalled();
+        }
+        catch (RemoteDeckOfCardsException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error: Can't determine if app is installed. Try installing to watch from Toq Android app.", Toast.LENGTH_SHORT).show();
+        }
+
+        if (!isInstalled) {
+            try {
+                mDeckOfCardsManager.installDeckOfCards(mRemoteDeckOfCards, mRemoteResourceStore);
+            } catch (RemoteDeckOfCardsException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Error: Cannot install application", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "App is already installed!", Toast.LENGTH_SHORT).show();
+        }
+
+        try{
+            storeDeckOfCards();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private void uninstall() {
+        boolean isInstalled = true;
+
+        try {
+            isInstalled = mDeckOfCardsManager.isInstalled();
+        }
+        catch (RemoteDeckOfCardsException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error: Can't determine if app is installed", Toast.LENGTH_SHORT).show();
+        }
+
+        if (isInstalled) {
+            try{
+                mDeckOfCardsManager.uninstallDeckOfCards();
+            }
+            catch (RemoteDeckOfCardsException e){
+                Toast.makeText(this, "Error: Uninitialized deck of cards.", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "Error: Already uninstalled.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void showCardWithBitmap(Bitmap bitmap) {
+        ListCard listCard = mRemoteDeckOfCards.getListCard();
+
+        // Create a SimpleTextCard with 1 + the current number of SimpleTextCards
+        SimpleTextCard simpleTextCard = new SimpleTextCard(Integer.toString(0));
+
+        simpleTextCard.setTitleText("Here is your drop!");
+        simpleTextCard.setReceivingEvents(false);
+        simpleTextCard.setShowDivider(true);
+
+        // Center crop bitmap
+        bitmap = ImageHelper.scaleCenterCrop(bitmap, 288, 250);
+
+        CardImage dropImage = new CardImage("drop.image", bitmap);
+        mRemoteResourceStore.addResource(dropImage);
+        simpleTextCard.setCardImage(mRemoteResourceStore, dropImage);
+
+        listCard.add(simpleTextCard);
+
+        try {
+            mDeckOfCardsManager.updateDeckOfCards(mRemoteDeckOfCards, mRemoteResourceStore);
+        } catch (RemoteDeckOfCardsException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to Create SimpleTextCard", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+
+    private void removeDeckOfCards(boolean allCards) {
+        ListCard listCard = mRemoteDeckOfCards.getListCard();
+        if (listCard.size() == 0) {
+            return;
+        }
+
+        if(allCards) {
+            while(listCard.isEmpty() != true) {
+                listCard.remove(0);
+            }
+        } else { // Otherwise just remove the top card.
+            listCard.remove(0);
+        }
+
+        try {
+            mDeckOfCardsManager.updateDeckOfCards(mRemoteDeckOfCards, mRemoteResourceStore);
+        } catch (RemoteDeckOfCardsException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to delete Card from ListCard", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    // Read an image from assets and return as a bitmap
+    private Bitmap getBitmap(String fileName) throws Exception{
+
+        try{
+            InputStream is= getAssets().open(fileName);
+            return BitmapFactory.decodeStream(is);
+        }
+        catch (Exception e){
+            throw new Exception("An error occurred getting the bitmap: " + fileName, e);
+        }
+    }
+
+    private RemoteDeckOfCards getStoredDeckOfCards() throws Exception{
+
+        if (!isValidDeckOfCards()){
+            Log.w(Constants.TAG, "Stored deck of cards not valid for this version of the demo, recreating...");
+            return null;
+        }
+
+        SharedPreferences prefs= getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
+        String deckOfCardsStr= prefs.getString(DECK_OF_CARDS_KEY, null);
+
+        if (deckOfCardsStr == null){
+            return null;
+        }
+        else{
+            return ParcelableUtil.unmarshall(deckOfCardsStr, RemoteDeckOfCards.CREATOR);
+        }
+
+    }
+
+    /**
+     * Uses SharedPreferences to store the deck of cards
+     * This is mainly used to
+     */
+    private void storeDeckOfCards() throws Exception{
+        // Retrieve and hold the contents of PREFS_FILE, or create one when you retrieve an editor (SharedPreferences.edit())
+        SharedPreferences prefs = getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
+        // Create new editor with preferences above
+        SharedPreferences.Editor editor = prefs.edit();
+        // Store an encoded string of the deck of cards with key DECK_OF_CARDS_KEY
+        editor.putString(DECK_OF_CARDS_KEY, ParcelableUtil.marshall(mRemoteDeckOfCards));
+        // Store the version code with key DECK_OF_CARDS_VERSION_KEY
+        editor.putInt(DECK_OF_CARDS_VERSION_KEY, Constants.VERSION_CODE);
+        // Commit these changes
+        editor.commit();
+    }
+
+    // Check if the stored deck of cards is valid for this version of the demo
+    private boolean isValidDeckOfCards(){
+
+        SharedPreferences prefs= getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
+        // Return 0 if DECK_OF_CARDS_VERSION_KEY isn't found
+        int deckOfCardsVersion= prefs.getInt(DECK_OF_CARDS_VERSION_KEY, 0);
+
+        return deckOfCardsVersion >= Constants.VERSION_CODE;
+    }
+
+    // Create some cards with example content
+    private RemoteDeckOfCards createDeckOfCards(){
+
+        ListCard listCard= new ListCard();
+
+        return new RemoteDeckOfCards(this, listCard);
+    }
+
+    /************************************** CARD CALLBACKS **************************************/
+    @Override
+    public void onCardOpen(String s) {
+        /*
+        Intent intent = new Intent(MyActivity.this, DrawActivity.class);
+        int requestCode = 123;
+        startActivityForResult(intent, requestCode);
+        */
+    }
+
+    protected void onActivityResult (int requestCode, int resultCode, Intent data) {
+        /*
+        // Collect data from the intent and use it
+        if(requestCode == 123) {
+            String file = data.getStringExtra("file");
+
+            // Show image on what from file
+            File imgFile = new  File(file);
+            Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+
+            removeDeckOfCards(true);
+            launchDrawingNotification();
+            showCardWithBitmap(myBitmap);
+        }
+        */
+    }
+
+    @Override
+    public void onCardVisible(String s) {
+
+    }
+
+    @Override
+    public void onCardInvisible(String s) {
+
+    }
+
+    @Override
+    public void onCardClosed(String s) {
+
+    }
+
+    @Override
+    public void onMenuOptionSelected(String s, String s2) {
+
+    }
+
+    @Override
+    public void onMenuOptionSelected(String s, String s2, String s3) {
+
     }
 
 }
