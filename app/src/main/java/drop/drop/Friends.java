@@ -57,8 +57,8 @@ public class Friends extends Activity {
                     HashMap<String, Object> userMap = (HashMap<String, Object>) user;
                     String userNumber = (String) userMap.get("number");
                     if (!userInfoList.contains(userNumber)) {
-                        String name = (String) userMap.remove("username");
-                        String pic = (String) userMap.remove("profile_picture");
+                        String name = (String) userMap.get("username");
+                        String pic = (String) userMap.get("profile_picture");
                         UserInfo info = new UserInfo(userNumber, name, pic);
                         userInfoList.add(info);
                     }

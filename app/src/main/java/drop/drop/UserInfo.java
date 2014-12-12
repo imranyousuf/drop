@@ -8,6 +8,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.util.Base64;
+import android.util.SparseBooleanArray;
 
 /**
  * A class to store user information to populate our Friends List
@@ -20,6 +21,7 @@ public class UserInfo {
     private Bitmap picture;
     private boolean selected;
     private int imagePixels = 144;
+
 
     public UserInfo(String number, String name, String encodedString) {
         this.number = number;

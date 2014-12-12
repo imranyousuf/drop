@@ -7,6 +7,8 @@
 
     <ListView
         android:id="@+id/add_friends_listview"
+        android:dividerHeight="1dp"
+        android:divider="@color/blue_accent"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:paddingTop="50dp"
