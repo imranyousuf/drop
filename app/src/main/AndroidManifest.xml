@@ -78,6 +78,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="drop.drop.Friends" />
         </activity>
+        <activity
+            android:name=".ToqActivity"
+            android:label="@string/title_activity_toq"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity"/>
+        </activity>
     </application>
 
 </manifest>
