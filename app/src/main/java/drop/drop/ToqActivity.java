@@ -69,30 +69,12 @@ public class ToqActivity extends Activity {
     private TextView statusTextView;
     private Context mContext;
 
-
-    // Read an image from assets and return as a bitmap
-    private Bitmap getBitmap(String fileName) throws Exception{
-
-        try{
-            //Context context = getApplicationContext();
-            // AssetManager assetManager = context.getAssets();
-
-
-            InputStream is= mContext.getAssets().open(fileName);
-            return BitmapFactory.decodeStream(is);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-            throw new Exception("An error occurred getting the bitmap: " + fileName, e);
-        }
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = ToqActivity.this;
         //getApplicationContext();
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_toq_activity);
         mDeckOfCardsManager = DeckOfCardsManager.getInstance(getApplicationContext());
 
         toqReceiver = new ToqBroadcastReceiver();
@@ -119,25 +101,23 @@ public class ToqActivity extends Activity {
         }
     }
 
-
-
-
+    // Read an image from assets and return as a bitmap
+    private Bitmap getBitmap(String fileName) throws Exception{
+        try{
+            // was: InputStream is= mcontext.getAssets().open(fileName);
+            InputStream is= getAssets().open(fileName);
+            return BitmapFactory.decodeStream(is);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            throw new Exception("An error occurred getting the bitmap: " + fileName, e);
+        }
+    }
 
     public void setupUI() {
 
         install();
 
-        /*
-
-        findViewById(R.id.flash_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                install();
-
-            }
-        });
-
-        */
     }
 
     private void sendNotification() {

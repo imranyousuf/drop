@@ -76,7 +76,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_above="@id/map"
-        />
+        android:onClick="launchToqActivity"/>
 
     <Switch
         android:id="@+id/public_switch"

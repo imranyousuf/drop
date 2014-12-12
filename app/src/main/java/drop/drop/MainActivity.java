@@ -75,7 +75,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     LocationListener mLocationListener;
     Location currentLocation;
     ImageView photo;
-    ImageButton friends;
     boolean photoBeingPreviewed = false;
     boolean usingFrontFacingCamera = false;
     Switch public_switch;
@@ -84,7 +83,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     ArrayList<Drop> notifiedDrops; // Holds all the drops that have triggered a notification
     ProgressBar spinner;
     boolean activityInBackground = false;
-    ToqActivity toq = new ToqActivity();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,8 +105,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         runCamera();
 
-        install_app();
-
         runMap();
 
     }
@@ -117,14 +113,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     protected void onResume() {
         super.onResume();
 
-        if(loggedIn == false) {
+        if(!loggedIn) {
             launchLogin();
         }
-    }
-
-    private void install_app() {
-        Intent intent = new Intent(this, ToqActivity.class);
-        startActivity(intent);
     }
 
     @Override
@@ -189,7 +180,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     private void pushDropFoundNotification(Drop drop) { // Push a notification to the user notifying them of the drop they found
         int marker_resource;
-        if(drop.getPostIsPublic() == true) {
+        if(drop.getPostIsPublic()) {
             marker_resource = R.drawable.public_drop_message;
         } else {
             marker_resource = R.drawable.friend_drop_message;
@@ -252,7 +243,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     // Save UID for use throughout the app
                     SharedPreferences.Editor editor = getSharedPreferences("drop", MODE_PRIVATE).edit();
                     editor.putString("uid", authData.getUid());
-                    editor.commit();
+                    //was editor.commit. apply() runs in the background
+                    editor.apply();
                 } else { // User is not logged in
                     loggedIn = false;
                 }
@@ -550,7 +542,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     }
 
     // Called every time the location of user changes.
-    Drop previouslyFound;
+    //Drop previouslyFound;
     public void checkForFoundDrop(Location userLocation) {
         for (Drop drop : drops) {
             Location dropLocation = new Location("");
@@ -899,10 +891,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     // Launch Friends activity
     public void launchFriendsActivity(View view) {
-        friends = (ImageButton) findViewById(R.id.friends_button);
-
         Intent intent = new Intent(this, Friends.class);
         startActivity(intent);
     }
 
+    // Launch Toq activity
+    public void launchToqActivity(View view) {
+        Intent intent = new Intent(this, Toq.class);
+        startActivity(intent);
+    }
 }

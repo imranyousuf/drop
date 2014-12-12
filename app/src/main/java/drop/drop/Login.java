@@ -23,15 +23,12 @@ public class Login extends Activity {
     EditText password_login;
     Button login_button;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         ActionBar actionBar = getActionBar();
         actionBar.hide();
-        System.out.println("toqlogin install");
-
 
         firebase = new Firebase("https://dropdatabase.firebaseio.com");
 
@@ -40,7 +37,6 @@ public class Login extends Activity {
         email_login = (EditText) findViewById(R.id.email_login);
         password_login = (EditText) findViewById(R.id.password_login);
         login_button = (Button) findViewById(R.id.login_button);
-
     }
 
     public void loginPressed(View view) {
@@ -59,7 +55,6 @@ public class Login extends Activity {
 
                         Toast.makeText(getApplicationContext(), "You're logged in!", Toast.LENGTH_LONG).show();
                     }
-
                     @Override
                     public void onAuthenticationError(FirebaseError error) {
                         login_button.setEnabled(true);
